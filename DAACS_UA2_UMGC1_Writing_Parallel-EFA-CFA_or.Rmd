@@ -1,0 +1,557 @@
+---
+title: "DAACS_UA2_UMGC1_Writing Assessment_Parallel Analysis, EFA, and CFA"
+author: "Oxana Rosca"
+date: "2023-01-06"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+DAACS Writing is a constructed-response assessment. It is a 10-item scale, where
+each item is a score on one writing criteria. The scores were produced via LightSide (trained models), an open source, automated essay scoring program.
+
+# Assessment of factor structure
+Furr (2014):
+A scale's dimensionality, or factor structure, refers to the number 
+and nature of the variables reflected in its items. 
+a) Dimensionality should be evaluated and considered in scale construction, use, 
+and evaluation
+b) Coefficient alpha is not an index of unidimensionality, the “eigenvalue 
+greater than one” rule should be avoided, and oblique rotations are preferable 
+to orthogonal rotations.
+Each dimension should be scored separately, with each requiring psychometric 
+evaluation. That is, each score obtained from a scale should reflect a single 
+coherent psychological variable. If a score reflects a blend of non-correlated 
+dimensions, then its psychological meaning is highly ambiguous. Thus, a 
+unidimensional scale produces a single score representing the lone dimension 
+reflected in its items.
+If dimensions are correlated robustly (reflecting some shared deeper 
+psychological variable), then scores from those dimensions might be combined to 
+form a score reflecting their shared psychological variable.
+
+## Results
+
+The parallel analyses confirms the unidimensionality of the writing scale with 
+the scores of ten writing criteria as indicators (the first eigenvalue 
+substantially dominates other eigenvalues). The results of parallel analysis 
+suggest 4 factors in the writing scale.However, the rubric for writing 
+assessment suggests a five-factor structure by assigning 10 criteria to 5 groups: 
+  Content includes Summary and Suggestions
+  Organization	includes Structure and	Transitions
+  Paragraphs includes	Focus on a Main Idea and	Cohesion
+  Sentences	includes Correct and	Complex
+  Conventions	includes Usage and	Punctuation
+According to the results of EFA, for both colleges, the 5-factor model has a 
+potential. However, the variables of Correct and Usage have to be adjusted: they 
+are too easy for the UAlbany students.
+The five-factor CFA model is misspecified to date.
+
+```{r}
+library(psych)
+library(psychTools)
+library(lavaan)
+library(semPlot)
+library(dplyr)
+```
+Test for the unidimensionality and number of factors in your data using parallel 
+analysis and Exploratory FA
+Load the data file
+```{r}
+global_ua2umgc1 <- 
+  readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/global_ua2umgc1.rds")
+```
+
+## Parallel Analysis
+
+### Unidimensionality rules of thumb (Dr. Colvin)
+20% of var explained or 5:1 ratio for eigen 1 to eigen 2 are based on a PCA, 
+where at least one of the eigenvalues must be >=1). Because FA, not PCA, takes 
+into account measurement error, it's possible that you can have values less 
+than 1, but it's not a good sign if your first one is so small.
+Different scientists advocate for different ratios, some say 4:1, others 8:1.
+
+### Combined Sample Parallel Analysis (UA2 and UMGC1)
+```{r}
+fa.parallel(global_ua2umgc1[,c(27:36)],fa="fa",fm="ml",n.iter=1000,
+        main="Parallel Analysis Scree plot for Writing Scale, UA2 and UMGC1")
+```
+
+### UMGC1 Sample Parallel Analysis
+```{r}
+fa.parallel(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:36)],fm="ml",
+          fa="fa",n.iter=1000,
+          main="Parallel Analysis Scree plot for Writing Scale, UMGC1")
+```
+
+### UA2 Sample Parallel Analysis
+```{r}
+fa.parallel(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:36)],fa="fa",
+fm="ml",n.iter=1000,main="Parallel Analysis Scree plot for Writing Scale, UA2")
+```
+The parallel analysis on UA2 run with warnings "the standard deviation is zero."
+
+####Standard Deviations of all writing criteria by college
+```{r}
+describe.by(global_ua2umgc1 [,27:36], global_ua2umgc1$college)
+```
+At UA2, the variables of write_correct and write_usage have very small sd, 0.09 
+and 0.13 respectively.
+At UMGC1, those variables have sd equal to 0.17 and 0.42 respectively.
+
+#####Frequencies for write_correct and write_usage by college:
+```{r}
+table <- with(global_ua2umgc1,table(write_correct,college)) 
+table
+```
+
+```{r}
+table <- with(global_ua2umgc1,table(write_usage,college)) 
+table
+```
+
+After removing the variables of write_correct and write_usage, the parallel 
+analysis on UA2 data runs normally:
+```{r}
+fa.parallel(global_ua2umgc1[global_ua2umgc1$college == "UA2",c(27:32,34,36)],
+            fa="fa",fm="ml",n.iter=1000,
+               main="Parallel Analysis Scree plot for Writing Scale, UA2")
+```
+
+## Exploratory Factor Analysis (EFA)
+
+### Combined (UA2 and UMGC1) Sample
+
+#### 1-factor EFA, Combined Sample, all 10 criteria
+```{r}
+FA_write1 <- fa(global_ua2umgc1[,c(27:36)], nfactors=1, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(FA_write1, sort=TRUE)
+```
+
+##### 1-factor EFA, Combined Sample, without Correct and Usage
+```{r}
+FA_write1 <- fa(global_ua2umgc1[,c(27:32,34,36)], nfactors=1, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(FA_write1, sort=TRUE)
+```
+
+#### 2-factor EFA, Combined Sample, all 10 criteria
+```{r}
+FA_write2 <- fa(global_ua2umgc1[,c(27:36)], nfactors=2, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(FA_write2, sort=TRUE)
+```
+##### 2-factor EFA, Combined Sample, without Correct and Usage
+```{r}
+FA_write2 <- fa(global_ua2umgc1[,c(27:32,34,36)], nfactors=2, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(FA_write2, sort=TRUE)
+```
+
+#### 3-factor EFA, Combined Sample, all 10 criteria
+Shows a good fit.
+The variables of write_usage and write_transitions didn't load sufficiently 
+(at least at 0.2 level) on any factor.
+```{r}
+FA_write3 <- fa(global_ua2umgc1[,c(27:36)], nfactors=3, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05,residuals=TRUE)
+print(FA_write3, sort=TRUE, cut=0.2)
+```
+```{r}
+fa.diagram(FA_write3, cut=0.2, 
+           main= "3-factor EFA, all 10 criteria, UA2 and UMGC1")
+```
+
+##### Frequencies for the write_transitions scores by college:
+```{r}
+table <- with(global_ua2umgc1,table(write_transitions,college)) 
+table
+```
+##### 3-factor EFA, 8 criteria, Combined Sample,  without Correct and Usage
+Shows a good fit.
+The variables of write_summary didn't load sufficiently on any factor.
+```{r}
+FA_write3 <- fa(global_ua2umgc1[,c(27:32,34,36)], nfactors=3, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05,residuals=TRUE)
+print(FA_write3, sort=TRUE, cut=0.2)
+```
+
+```{r}
+fa.diagram(FA_write3, cut=0.2, 
+           main= "3-factor EFA, 8 criteria, UA2 and UMGC1")
+```
+
+```{r}
+table <- with(global_ua2umgc1,table(write_summary,college)) 
+table
+```
+
+#### 4-factor EFA, Combined Sample, all 10 criteria
+Shows a good fit.
+The variable of write_usage didn't load sufficiently on any factor.
+```{r}
+FA_write4 <- fa(global_ua2umgc1[,c(27:36)], nfactors=4, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(FA_write4, sort=TRUE, cut=0.2)
+```
+
+```{r}
+fa.diagram(FA_write4, cut=0.2, 
+           main= "4-factor EFA, 10 criteria, UA2 and UMGC1")
+```
+
+##### 4-factor EFA, Combined Sample, without Correct and Usage
+```{r}
+FA_write4 <- fa(global_ua2umgc1[,c(27:32,34,36)], nfactors=4, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(FA_write4, sort=TRUE)
+```
+
+#### 5-factor EFA, Combined Sample, all 10 criteria
+Has a good fit.
+The variables of write_complexity and write_correct didn't load sufficiently on 
+any factor.
+```{r}
+FA_write5 <- fa(global_ua2umgc1[,c(27:36)], nfactors=5, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(FA_write5, sort=TRUE, cut=0.2)
+```
+
+```{r}
+fa.diagram(FA_write5, cut=0.2, 
+           main= "5-factor EFA, 10 criteria, UA2 and UMGC1")
+```
+
+##### 5-factor EFA, Combined Sample, without Correct and Usage
+
+```{r}
+FA_write5 <- fa(global_ua2umgc1[,c(27:32,34,36)], nfactors=5,rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(FA_write5, sort=TRUE)
+```
+
+#### 6-factor EFA, Combined Sample, all 10 criteria
+```{r}
+FA_write6 <- fa(global_ua2umgc1[,c(27:36)], nfactors=6, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(FA_write6, sort=TRUE)
+```
+
+##### 6-factor EFA, Combined Sample, without Correct and Usage
+```{r}
+FA_write6 <- fa(global_ua2umgc1[,c(27:32,34,36)], nfactors=6, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(FA_write6, sort=TRUE)
+```
+
+###UMGC1 Sample
+
+#### 1-factor EFA, UMGC1, all 10 criteria
+```{r}
+FA_write1 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:36)], 
+          nfactors=1,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write1, sort=TRUE)
+```
+
+##### 1-factor EFA, UMGC1, without Correct and Usage
+```{r}
+FA_write1 <-fa(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:32,34,36)], 
+          nfactors=1,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write1, sort=TRUE)
+```
+
+#### 2-factor EFA, UMGC1, all 10 criteria
+```{r}
+FA_write2 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:36)], 
+          nfactors=2,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write2, sort=TRUE)
+```
+
+##### 2-factor EFA, UMGC1, without Correct and Usage
+```{r}
+FA_write2 <-fa(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:32,34,36)], 
+          nfactors=2,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write2, sort=TRUE)
+```
+
+#### 3-factor EFA, UMGC1, all 10 criteria
+```{r}
+FA_write3 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:36)], 
+          nfactors=3,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write3, sort=TRUE)
+```
+
+##### 3-factor EFA, UMGC1, without Correct and Usage
+```{r}
+FA_write3 <-fa(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:32,34,36)], 
+          nfactors=3,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write3, sort=TRUE)
+```
+
+#### 4-factor EFA, UMGC1, all 10 criteria
+The model has a good fit.
+The variable of write_usage didn't load sufficiently (at least at 0.3 level) on 
+any factor.
+```{r}
+FA_write4 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:36)], 
+          nfactors=4,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write4, sort=TRUE, cut=0.2)
+```
+
+```{r}
+fa.diagram(FA_write4, cut=0.2, 
+           main= "4-factor EFA, 10 criteria, UMGC1")
+```
+
+##### 4-factor EFA, UMGC1, without Correct and Usage
+```{r}
+FA_write4 <-fa(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:32,34,36)], 
+          nfactors=4,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write4, sort=TRUE)
+```
+
+#### 5-factor EFA, UMGC1, all 10 criteria
+```{r}
+FA_write5 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:36)], 
+          nfactors=5,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write5, sort=TRUE)
+```
+
+##### 5-factor EFA, UMGC1, without Correct and Usage
+```{r}
+FA_write5<-fa(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:32,34,36)], 
+          nfactors=5,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write5, sort=TRUE)
+```
+
+#### 6-factor EFA, UMGC1, all 10 criteria
+```{r}
+FA_write6 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:36)], 
+          nfactors=6,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write6, sort=TRUE)
+```
+
+##### 6-factor EFA, UMGC1, without Correct and Usage
+```{r}
+FA_write6 <-fa(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:32,34,36)], 
+          nfactors=6,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write6, sort=TRUE)
+```
+
+### UA2 Sample
+
+#### 1-factor EFA, UA2, all 10 criteria
+```{r}
+FA_write1 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:36)], 
+          nfactors=1,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write1, sort=TRUE)
+```
+
+##### 1-factor EFA, UA2, without Correct and Usage
+```{r}
+FA_write1 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:32,34,36)], 
+          nfactors=1,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write1, sort=TRUE)
+```
+
+#### 2-factor EFA, UA2, all 10 criteria
+```{r}
+FA_write2 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:36)], 
+          nfactors=2,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write2, sort=TRUE)
+```
+
+##### 2-factor EFA, UA2, without Correct and Usage
+```{r}
+FA_write2 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:32,34,36)], 
+          nfactors=2,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write2, sort=TRUE)
+```
+
+#### 3-factor EFA, UA2, all 10 criteria
+```{r}
+FA_write3 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:36)], 
+          nfactors=3,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write3, sort=TRUE)
+```
+
+##### 3-factor EFA, UA2, without Correct and Usage
+The model has a good fit.
+```{r}
+FA_write3 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:32,34,36)], 
+          nfactors=3,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write3, sort=TRUE, cut=0.2)
+```
+
+```{r}
+fa.diagram(FA_write3, cut=0.2, 
+           main= "3-factor EFA, 8 criteria, UA2")
+```
+
+#### 4-factor EFA, UA2, all 10 criteria
+The model has a good fit.
+```{r}
+FA_write4 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:36)], 
+          nfactors=4,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write4, sort=TRUE, cut=0.2)
+```
+
+```{r}
+fa.diagram(FA_write4, cut=0.2, 
+           main= "4-factor EFA, 10 criteria, UA2")
+```
+
+##### 4-factor EFA, UA2, without Correct and Usage
+```{r}
+FA_write4 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:32,34,36)], 
+          nfactors=4,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write4, sort=TRUE)
+```
+
+#### 5-factor EFA, UA2, all 10 criteria
+The model has a good fit.
+```{r}
+FA_write5<- fa(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:36)], 
+          nfactors=5,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write5, sort=TRUE, cut=0.2)
+```
+
+```{r}
+fa.diagram(FA_write5, cut=0.2, 
+           main= "5-factor EFA, 10 criteria, UA2")
+```
+
+##### 5-factor EFA, UA2, without Correct and Usage
+```{r}
+FA_write5 <-fa(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:32,34,36)], 
+          nfactors=5,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write5, sort=TRUE)
+```
+
+```{r}
+table <- with(global_ua2umgc1,table(write_punctuation,write_correct,college)) 
+table
+```
+
+#### 6-factor EFA, UA2, all 10 criteria
+```{r}
+FA_write6 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:36)], 
+          nfactors=6,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write6, sort=TRUE)
+```
+
+##### 6-factor EFA, UA2, without Correct and Usage
+```{r}
+FA_write6 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:32,34,36)], 
+          nfactors=6,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write6, sort=TRUE)
+```
+
+## CFA
+The CFAs confirm that the 5-factor model is misspecified. At least one of the 
+correlations between factors is larger than 1, which is an impossible estimate. 
+That, in turn, makes the modification indices invalid.
+
+### Specify the 10-criteria-5-factor CFA model
+```{r}
+CFA_write5f<- 'content =~ write_summary + write_suggestions
+organization =~ write_structure + write_transitions
+paragraphs =~ write_ideas + write_cohesion
+sentences =~ write_correct + write_complexity
+conventions =~ write_usage + write_punctuation
+content~~organization
+content~~paragraphs
+content~~sentences
+content~~conventions
+organization~~paragraphs
+organization~~sentences
+organization~~conventions
+paragraphs~~sentences
+paragraphs~~conventions
+sentences~~conventions'
+```
+
+### Run the CFA model, Combined Sample (UA2 and UMGC1)
+The covariance matrix of latent variables for the CFA model is not 
+positive definite (lavaan WARNING).
+```{r}
+CFA_write5f_ua2umgc1_fit<-cfa(CFA_write5f,
+                data=global_ua2umgc1[,c(27:36)],std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_write5f_ua2umgc1_fit, standardized=TRUE, fit.measures = TRUE)
+```
+
+```{r}
+semPaths(CFA_write5f_ua2umgc1_fit,what="path",layout="tree2",whatLabels="path",
+        rotation=2)
+```
+
+
+Investigate the model. There is a correlation greater than 1:
+```{r}
+lavInspect(CFA_write5f_ua2umgc1_fit, "cor.lv")
+```
+
+#### Request Modification Indecies for Combined Sample (UA2 and UMGC1) CFA.
+lavaan WARNING: starting values imply a correlation larger than 1.
+```{r}
+modindices(CFA_write5f_ua2umgc1_fit, sort = TRUE, maximum.number = 5)
+```
+
+### Run the 10-criteria-5-factor model for UA2 sample
+The covariance matrix of latent variables for the CFA model is not 
+positive definite (lavaan WARNING).
+```{r}
+CFA_write5f_ua2_fit<-cfa(CFA_write5f,
+                data=global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:36)],
+                std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_write5f_ua2_fit, fit.measures = TRUE)
+```
+
+Investigate. There are 4 correlations greater than 1:
+```{r}
+lavInspect(CFA_write5f_ua2_fit, "cor.lv")
+```
+
+#### Request Modification Indecies for UA2 CFA
+lavaan WARNING: starting values imply a correlation larger than 1
+```{r}
+modindices(CFA_write5f_ua2_fit, sort = TRUE, maximum.number = 5)
+```
+
+### Run the 10-criteria-5-factor model for UMGC1 sample
+The covariance matrix of latent variables for the 10-criteria model is not 
+positive definite (lavaan WARNING).
+```{r}
+CFA_write5f_umgc1_fit<-cfa(CFA_write5f,
+                data=global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:36)],
+                std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_write5f_umgc1_fit, fit.measures = TRUE)
+```
+
+Investigate. There are 3 correlations greater than 1:
+```{r}
+lavInspect(CFA_write5f_umgc1_fit, "cor.lv")
+```
+
+#### Request Modification Indecies for UMGC1 CFA
+lavaan WARNING: starting values imply a correlation larger than 1
+```{r}
+modindices(CFA_write5f_umgc1_fit, sort = TRUE, maximum.number = 5)
+```
+ 
+
+After clarifying the scale's structure (CFA), examine the reliability and 
+validity of each dimension through a series of studies (Furr, 2014).
+
+
+#Reference
+Furr, R. M. (2014). Scale construction and psychometrics for social and 
+personality psychology.Thousand Oaks, CA: SAGE.doi:10.4135/9781446287866
+
+
+
+
