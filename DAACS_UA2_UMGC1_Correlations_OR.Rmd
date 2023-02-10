@@ -1,0 +1,265 @@
+---
+title: "DAACS_UA2_UMGC1_Correlations_OR"
+author: "Oxana Rosca"
+date: "2022-11-16"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(psych)
+library(haven)
+```
+
+Load the data file
+```{r}
+global_ua2umgc1 <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/global_ua2umgc1.rds")
+```
+
+Total Number of Participants and Demographics or how many participants and 
+variables you have:
+```{r}
+dim(global_ua2umgc1)
+```
+
+*Duplicates*
+Test for duplicate values in read.items.response
+Frequencies: How many of non-duplicated IDs?
+```{r}
+table(duplicated(global_ua2umgc1$DAACS_ID))
+```
+To check if there are empty rows:
+```{r}
+global_ua2umgc1_Check<-
+  global_ua2umgc1[rowSums(is.na(global_ua2umgc1))!=ncol(global_ua2umgc1),]
+```
+Comparing the # of cases in umgc1SRLDaacs and umgc1SRLDaacs_Check (which are 
+equal), there are no empty rows in umgc1SRLDaacs.
+
+
+see the minimum value in minutes
+```{r}
+min(global_ua2umgc1$readTime, na.rm = TRUE)
+min(global_ua2umgc1$mathTime, na.rm = TRUE)
+```
+
+*Correlations Total (UA2 and UMGC1 as one  sample)*
+
+Introducing levels to the variable of college, we assign 1 and purple color to 
+UA2 and 2 and red color to UMGC1.
+Thus, a positive correlation of a variable with "college" means that UMGC1 
+students are doing better; a negative correlation of a variable with "college" 
+means that UA2 students are doing better.
+
+For fewer than 11 variables, do a SPLOM (Scatter Plot Matrix) of the data.
+
+Total Scores
+```{r}
+pairs.panels(global_ua2umgc1[,c (41,21,49,236,39)],bg=c("purple",
+      "red")[global_ua2umgc1$college], stars=TRUE, pch=21,
+          main="Correlations between Total Scores")
+```
+
+SRL Scales
+```{r}
+pairs.panels(global_ua2umgc1[,c (41,3:6,21,49,236,39)], stars=TRUE,
+             bg=c("purple","red")[global_ua2umgc1$college], pch=21, gap=0,
+                  main="Correlations between SRL Scales and Total Scores")
+```
+
+SRL Strategies Subscales
+```{r}
+pairs.panels(global_ua2umgc1[,c (41,3,7:10,21,49,236,39)],stars=TRUE,
+             bg=c("purple","red")[global_ua2umgc1$college], pch=21, gap=0,
+                main="Correlations between Strategies Scales and Total Scores")
+```
+
+SRL Motivation Subscales
+```{r}
+pairs.panels(global_ua2umgc1[,c (41,4, 11:13,21,49,236,39)],stars=TRUE,
+             bg=c("purple","red")[global_ua2umgc1$college], pch=21, gap=0,
+                main="Correlations between Motivation Scales and Total Scores")
+```
+SRL Metacognition Subscales
+```{r}
+pairs.panels(global_ua2umgc1[,c (41,5,14:16,21,49,236,39)],stars=TRUE,
+            bg=c("purple","red")[global_ua2umgc1$college], pch=21, gap=0,
+              main="Correlations between Metacognition Scales and Total Scores")
+```
+
+SRL Self-Efficacy Scales
+```{r}
+pairs.panels(global_ua2umgc1[,c (41,6, 17:20,21,49,236,39)], stars=TRUE,
+            bg=c("purple","red")[global_ua2umgc1$college], pch=21, gap=0,
+              main="Correlations between Self-Efficacy Scales and Total Scores")
+```
+
+Math Domains Subscales
+```{r}
+pairs.panels(global_ua2umgc1[,c (41,17,43:49)],stars=TRUE,
+            bg=c("purple","red")[global_ua2umgc1$college], pch=21, gap=0,
+              main="Correlations between Math Domains")
+```
+Reading Domains Subscales
+```{r}
+pairs.panels(global_ua2umgc1[,c (41,19,231:236)],stars=TRUE,
+             bg=c("purple","red")[global_ua2umgc1$college], pch=21, gap=0,
+              main="Correlations between Reading Domains")
+```
+Writing Criteria Subscales
+```{r}
+pairs.panels(global_ua2umgc1[,c (41,20,27:36,39)],stars=TRUE,
+            bg=c("purple","red")[global_ua2umgc1$college], pch=21, gap=0,
+              main="Correlations between Writing Domains")
+```
+
+*Correlations for UA2*
+Subset UA2 data
+```{r}
+global_ua2 <- global_ua2umgc1[ which(global_ua2umgc1$college=='UA2'), ]
+```
+
+Total Scores
+```{r}
+pairs.panels(global_ua2[,c (21,49,236,39)],stars=TRUE, hist.col='purple4',
+          main="Correlations between UA2 Total Scores")
+```
+
+SRL Scales
+```{r}
+pairs.panels(global_ua2[,c (3:6,21,49,236,39)], stars=TRUE,gap=0,
+ hist.col='purple4',main="Correlations between UA2 SRL Scales and Total Scores")
+```
+
+SRL Strategies Subscales
+```{r}
+pairs.panels(global_ua2[,c (3,7:10,21,49,236,39)],stars=TRUE, gap=0,
+hist.col='purple4',main="Correlations between UA2 SRL Strategies Scales and Total Scores")
+```
+
+SRL Motivation Subscales
+```{r}
+pairs.panels(global_ua2[,c (4,11:13,21,49,236,39)],stars=TRUE, gap=0,
+ hist.col='purple4',main="Correlations between UA2 SRL Motivation Scales and Total Scores")
+```
+SRL Metacognition Subscales
+```{r}
+pairs.panels(global_ua2[,c (5,14:16,21,49,236,39)],stars=TRUE, gap=0,
+ hist.col='purple4',main="Correlations between UA2 SRL Metacognition Scales and Total Scores")
+```
+
+SRL Self-Efficacy Scales
+```{r}
+pairs.panels(global_ua2[,c (6,17:20,21,49,236,39)], stars=TRUE, gap=0,
+ hist.col='purple4',main="Correlations between UA2 SRL Self-Efficacy Scales and Total Scores")
+```
+
+Math Domains Subscales
+```{r}
+pairs.panels(global_ua2[,c (17,43:49)],stars=TRUE, gap=0,
+ hist.col='purple4',main="Correlations between UA2 Math Domains")
+```
+Reading Domains Subscales
+```{r}
+pairs.panels(global_ua2[,c (19,231:236)],stars=TRUE, gap=0,
+hist.col='purple4',main="Correlations between UA2 Reading Domains" )
+```
+Writing Criteria Subscales
+```{r}
+pairs.panels(global_ua2[,c (20,27:36,39)],stars=TRUE,gap=0, 
+             hist.col='purple4',main="Correlations between UA2 Writing Domains")
+```
+
+
+*Correlations for UMGC1*
+Subset UMGC1 data
+```{r}
+global_umgc1 <- global_ua2umgc1[ which(global_ua2umgc1$college=='UMGC1'), ]
+```
+
+Total Scores
+```{r}
+pairs.panels(global_umgc1[,c (21,49,236,39)],stars=TRUE, hist.col='red3',
+          main="Correlations between UMGC1 Total Scores")
+```
+
+SRL Scales
+```{r}
+pairs.panels(global_umgc1[,c (3:6,21,49,236,39)], stars=TRUE,gap=0,
+ hist.col='red3',main="Correlations between UMGC1 SRL Scales and Total Scores")
+```
+
+SRL Strategies Subscales
+```{r}
+pairs.panels(global_umgc1[,c (3,7:10,21,49,236,39)],stars=TRUE, gap=0,
+hist.col='red3',main="Correlations between UMGC1 SRL Strategies Scales and Total Scores")
+```
+
+SRL Motivation Subscales
+```{r}
+pairs.panels(global_umgc1[,c (4,11:13,21,49,236,39)],stars=TRUE, gap=0,
+ hist.col='red3',main="Correlations between UMGC1 SRL Motivation Scales and Total Scores")
+```
+SRL Metacognition Subscales
+```{r}
+pairs.panels(global_umgc1[,c (5,14:16,21,49,236,39)],stars=TRUE, gap=0,
+ hist.col='red3',main="Correlations between UMGC1 SRL Metacognition Scales and Total Scores")
+```
+
+SRL Self-Efficacy Scales
+```{r}
+pairs.panels(global_umgc1[,c (6,17:20,21,49,236,39)], stars=TRUE, gap=0,
+ hist.col='red3',main="Correlations between UMGC1 SRL Self-Efficacy Scales and Total Scores")
+```
+
+Math Domains Subscales
+```{r}
+pairs.panels(global_umgc1[,c (17,43:49)],stars=TRUE, gap=0,
+ hist.col='red3',main="Correlations between UMGC1 Math Domains")
+```
+Reading Domains Subscales
+```{r}
+pairs.panels(global_umgc1[,c (19,231:236)],stars=TRUE, gap=0,
+hist.col='red3',main="Correlations between UMGC1 Reading Domains" )
+```
+Writing Criteria Subscales
+```{r}
+pairs.panels(global_umgc1[,c (20,27:36,39)],stars=TRUE,gap=0,
+ hist.col='red3', main="Correlations between UMGC1 Writing Domains")
+```
+
+*Check new files*
+Test for duplicate values in read.items.response
+Frequencies: How many of non-duplicated IDs?
+```{r}
+table(duplicated(global_ua2$DAACS_ID))
+table(duplicated(global_umgc1$DAACS_ID))
+```
+To check if there are empty rows:
+```{r}
+global_ua2_Check<-
+  global_ua2[rowSums(is.na(global_ua2))!=ncol(global_ua2),]
+global_umgc1_Check<-
+  global_umgc1[rowSums(is.na(global_umgc1))!=ncol(global_umgc1),]
+```
+Comparing the # of cases in global_ua2 and global_ua2_Check (which are equal), 
+there are no empty rows in global_ua2. Comparing the # of cases in global_umgc1 
+and global_umgc1_Check (which are equal), there are no empty rows in 
+global_umgc1.
+
+*Save New File*
+
+```{r}
+saveRDS(global_ua2, file = 'global_ua2.rds')
+write_sav(global_ua2, "global_ua2.sav")#library(haven)
+write.table(global_ua2, 'global_ua2.csv', sep=',')
+saveRDS(global_umgc1, file = 'global_umgc1.rds')
+write_sav(global_umgc1, "global_umgc1.sav")#library(haven)
+write.table(global_umgc1, 'global_umgc1.csv', sep=',')
+```

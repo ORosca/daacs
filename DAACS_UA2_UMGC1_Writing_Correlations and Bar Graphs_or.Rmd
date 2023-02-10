@@ -1,0 +1,290 @@
+---
+title: "Writing Subscales (Criteria) Scores, Correlations and Bar Graphs"
+author: "Oxana Rosca"
+date: "2023-01-23"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The Writing scale consists of 10 criteria. The rubric assigns them to 5 groups 
+as follows: 
+  Content includes Summary and Suggestions
+  Organization	includes Structure and	Transitions
+  Paragraphs includes	Focus on a Main Idea and	Cohesion
+  Sentences	includes Correct and	Complex
+  Conventions	includes Usage and	Punctuation
+```{r}
+library(psych)
+```
+  
+Data file
+```{r}
+global_ua2umgc1 <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/global_ua2umgc1.rds")
+```
+
+# Sample Sizes
+or how many students took writing assessment?
+# Select the writing scores for UA2
+```{r}
+table(global_ua2umgc1$college,global_ua2umgc1$write_attempt)
+writeUA2 <- global_ua2umgc1[global_ua2umgc1$college == "UA2",]
+nrow(writeUA2[writeUA2$writeTotal != "NA",])
+```
+
+
+# See the total frequencies for each item
+table(math.items$qid)
+```{r}
+table(global_ua2umgc1[global_ua2umgc1$college=="UA2", which(global_ua2umgc1$writeTotal>=0)])
+```
+
+
+# Correlations among Writing Subscales (Criteria) Scores
+
+## UA2 Correlations among Writing Subscales (Criteria) Scores
+```{r}
+writeUA2<-global_ua2umgc1[global_ua2umgc1$college=="UA2",27:36]
+rho <- lowerCor(writeUA2)
+corPlot(rho, main = "Correlations among Writing Subscales, UA2")
+```
+### with p-values
+All correlations greater than 0.11 are statistically significant
+```{r}
+#corr.test(writeUA2)
+```
+
+## UMGC1 Correlations among Writing Subscales (Criteria) Scores
+```{r}
+writeUMGC1<-global_ua2umgc1[global_ua2umgc1$college=="UMGC1",27:36]
+rho <- lowerCor(writeUMGC1)
+corPlot(rho, main = "Correlations among Writing Subscales, UMGC1")
+```
+
+## Correlations among Writing Subscales in the Combined Sample (UA2 and UMGC1)
+```{r}
+write<-global_ua2umgc1[,27:36]
+rho <- lowerCor(write)
+corPlot(rho, main = "Correlations among Writing Subscales, UA2 and UMGC1")
+```
+
+# Bar Graphs for Writing Subscales (Criteria) Scores
+## UA2 Writing Subscales (Criteria) Scores
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UA2",27]),
+        main="Write_Summary Score Distribution, UA2",
+        xlab="Write_Summary Score", ylab="Number of Students", border="purple", 
+        col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UA2",28]),
+        main="Write_Suggestions Score Distribution, UA2",
+        xlab="Write_Suggestion Score", ylab="Number of Students", 
+        border="purple", col="grey", density=100)
+```
+
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UA2",29]),
+        main="Write_Structure Score Distribution, UA2",
+        xlab="Write_Structure Score", ylab="Number of Students", 
+        border="purple", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UA2",30]),
+        main="Write_Transitions Score Distribution, UA2",
+        xlab="Write_Transitions", ylab="Number of Students", 
+        border="purple", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UA2",31]),
+        main="Write_Main_Idea Score Distribution, UA2",
+        xlab="Write_Main_Idea", ylab="Number of Students", 
+        border="purple", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UA2",32]),
+        main="Write_Cohesion Score Distribution, UA2",
+        xlab="Write_Cohesion", ylab="Number of Students", 
+        border="purple", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UA2",33]),
+        main="Write_Correct Score Distribution, UA2",
+        xlab="Write_Correct", ylab="Number of Students", 
+        border="purple", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UA2",34]),
+        main="Write_Complexity Score Distribution, UA2",
+        xlab="Write_Complexity", ylab="Number of Students", 
+        border="purple", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UA2",35]),
+        main="Write_Usage Score Distribution, UA2",
+        xlab="Write_Usage", ylab="Number of Students", 
+        border="purple", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UA2",36]),
+        main="Write_Punctuation Score Distribution, UA2",
+        xlab="Write_Punctuation", ylab="Number of Students", 
+        border="purple", col="grey", density=100)
+```
+
+## UMGC1 Writing Subscales (Criteria) Scores
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",27]),
+        main="Write_Summary Score Distribution, UMGC1",
+        xlab="Write_Summary Score", ylab="Number of Students", border="red", 
+        col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",28]),
+        main="Write_Suggestions Score Distribution, UMGC1",
+        xlab="Write_Suggestion Score", ylab="Number of Students", 
+        border="red", col="grey", density=100)
+```
+
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",29]),
+        main="Write_Structure Score Distribution, UMGC1",
+        xlab="Write_Structure Score", ylab="Number of Students", 
+        border="red", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",30]),
+        main="Write_Transitions Score Distribution, UMGC1",
+        xlab="Write_Transitions", ylab="Number of Students", 
+        border="red", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",31]),
+        main="Write_Main_Idea Score Distribution, UMGC1",
+        xlab="Write_Main_Idea", ylab="Number of Students", 
+        border="red", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",32]),
+        main="Write_Cohesion Score Distribution, UMGC1",
+        xlab="Write_Cohesion", ylab="Number of Students", 
+        border="red", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",33]),
+        main="Write_Correct Score Distribution, UMGC1",
+        xlab="Write_Correct", ylab="Number of Students", 
+        border="red", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",34]),
+        main="Write_Complexity Score Distribution, UMGC1",
+        xlab="Write_Complexity", ylab="Number of Students", 
+        border="red", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",35]),
+        main="Write_Usage Score Distribution, UMGC1",
+        xlab="Write_Usage", ylab="Number of Students", 
+        border="red", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",36]),
+        main="Write_Punctuation Score Distribution, UMGC1",
+        xlab="Write_Punctuation", ylab="Number of Students", 
+        border="red", col="grey", density=100)
+```
+
+## Writing Subscales (Criteria) Scores for the Combined Sample (UA2 and UMGC1)
+```{r}
+barplot(table(global_ua2umgc1$write_summary),
+        main="Write_Summary Score Distribution, UA2 and UMGC1",
+        xlab="Write_Summary Score", ylab="Number of Students", border="black", 
+        col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1$write_suggestions),
+        main="Write_Suggestions Score Distribution, UA2 and UMGC1",
+        xlab="Write_Suggestion Score", ylab="Number of Students", 
+        border="black", col="grey", density=100)
+```
+
+
+```{r}
+barplot(table(global_ua2umgc1$write_structure),
+        main="Write_Structure Score Distribution, UA2 and UMGC1",
+        xlab="Write_Structure Score", ylab="Number of Students", 
+        border="black", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1$write_transitions),
+        main="Write_Transitions Score Distribution, UA2 and UMGC1",
+        xlab="Write_Transitions", ylab="Number of Students", 
+        border="black", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1$write_ideas),
+        main="Write_Main_Idea Score Distribution, UA2 and UMGC1",
+        xlab="Write_Main_Idea", ylab="Number of Students", 
+        border="black", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1$write_cohesion),
+        main="Write_Cohesion Score Distribution, UA2 and UMGC1",
+        xlab="Write_Cohesion", ylab="Number of Students", 
+        border="black", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1$write_correct),
+        main="Write_Correct Score Distribution, UA2 and UMGC1",
+        xlab="Write_Correct", ylab="Number of Students", 
+        border="black", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1$write_complexity),
+        main="Write_Complexity Score Distribution, UA2 and UMGC1",
+        xlab="Write_Complexity", ylab="Number of Students", 
+        border="black", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1$write_usage),
+        main="Write_Usage Score Distribution, UA2 and UMGC1",
+        xlab="Write_Usage", ylab="Number of Students", 
+        border="black", col="grey", density=100)
+```
+
+```{r}
+barplot(table(global_ua2umgc1$write_punctuation),
+        main="Write_Punctuation Score Distribution, UA2 and UMGC1",
+        xlab="Write_Punctuation", ylab="Number of Students", 
+        border="black", col="grey", density=100)
+```

@@ -1,0 +1,570 @@
+---
+title: "DAACS_math_Multiple-Attempt-Takers_UA2 and UMGC1_T-test_Sep16_2022_OR"
+author: "Oxana Rosca"
+date: "2022-14-11"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(haven)
+library(dplyr)
+library(tidyverse)
+library(ggpubr)
+library(rstatix)
+library(pwr)
+```
+
+*Results of the paired t-test*
+SRL Total Score result: there is statistically significant difference between 
+the first and the second attempts.The second attempt's score is on average 0.124 
+point higher than the score for the first attempt. 
+The effect size for the paired t-test is Cohen’s d = -0.3652094 (medium)
+There is no difference between the total scores from the first and the second 
+attempts on math, reading, and writing assessments. That suggests the test-
+retest reliability of our assessments, but the power test shows that sample 
+sizes are too small to claim the validity evidence. The 16-student sample on 
+writing assessment is sufficient to find a large effect size of d>=0.9; the 
+30-student sample on math assessment is sufficient to find a large effect size 
+of d>=0.6; and the 55-student sample on reading assessment is sufficient to find 
+a medium effect size of d>=0.4. None of three samples is to find a medium effect 
+size of d=0.3 or smaller.
+
+Load the files with results for all attempts (the daacs.rds contains only the 
+results for the first attempts)
+*UMGC1*
+```{r}
+load("data_export/DAACS-Results-umgc_2022-09-16.rda")
+#Subset the 1st attempts
+daacsumgc1<-daacs[,c(1:21,25:32,36:42,46,48:57,60)]
+#To subset the 2nd, 3rd, and 4th attempts later:
+math.results.umgc1<-math.results[,-c(10,11)]
+read.results.umgc1<-read.results[,-c(9,10)]
+srl.results.umgc1<-srl.results[,-c(22,23)]
+write.results.umgc1<-write.results[,-c(3,14,15)]
+```
+
+calculate the time variables in minutes
+```{r}
+daacsumgc1$srlTime1<-(daacs$srlCompletionDate-daacs$srlStartDate)/60
+daacsumgc1$mathTime1<-(daacs$mathCompletionDate-daacs$mathStartDate)/60
+daacsumgc1$readTime1<-(daacs$readCompletionDate-daacs$readStartDate)/60
+daacsumgc1$writeTime1<-(daacs$writeCompletionDate-daacs$writeStartDate)/60
+srl.results.umgc1$srlTime2<-
+              (srl.results$srlCompletionDate-srl.results$srlStartDate)/60
+math.results.umgc1$mathTime2<-
+          (math.results$mathCompletionDate-math.results$mathStartDate)/60
+read.results.umgc1$readTime2<-
+          (read.results$readCompletionDate-read.results$readStartDate)/60
+write.results.umgc1$writeTime2<-
+      (write.results$writeCompletionDate-write.results$writeStartDate)/60
+```
+
+To remove the non-numeric substring "sec" from the values of srlTime
+```{r}
+#for the 1st attempts
+time_var_temp <- 
+lapply(daacsumgc1[49],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+daacsumgc1$srlTime1<-time_var_temp$srlTime1
+#for the 2nd, 3rd, and 4th attempts
+time_var_temp <- 
+lapply(srl.results.umgc1[22],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+srl.results.umgc1$srlTime2<-time_var_temp$srlTime2
+```
+To remove the non-numeric substring "sec" from the values of mathTime
+```{r}
+#for the 1st attempts
+time_var_temp <- 
+lapply(daacsumgc1[50],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+daacsumgc1$mathTime1<-time_var_temp$mathTime1
+#for the 2nd, 3rd, and 4th attempts
+time_var_temp <- 
+lapply(math.results.umgc1[10],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+math.results.umgc1$mathTime2<-time_var_temp$mathTime2
+```
+To remove the non-numeric substring "sec" from the values of readTime
+```{r}
+#for the 1st attempts
+time_var_temp <- 
+lapply(daacsumgc1[51],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+daacsumgc1$readTime1<-time_var_temp$readTime1
+#for the 2nd, 3rd, and 4th attempts
+time_var_temp <- 
+lapply(read.results.umgc1[9],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+read.results.umgc1$readTime2<-time_var_temp$readTime2
+```
+To remove the non-numeric substring "sec" from the values of writeTime 
+```{r}
+#for the 1st attempts
+time_var_temp <- 
+lapply(daacsumgc1[52],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+daacsumgc1$writeTime1<-time_var_temp$writeTime1
+#for the 2nd, 3rd, and 4th attempts
+time_var_temp <- 
+lapply(write.results.umgc1[14],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+write.results.umgc1$writeTime2<-time_var_temp$writeTime2
+```
+
+*UA2*
+```{r}
+load("data_export/DAACS-Results-albany_2022-09-16.rda")
+#Subset the 1st attempts
+daacsua2<-daacs[,c(1:21,25:32,36:42,46,48:57,60)]
+#To subset the 2nd, 3rd, and 4th attempts later:
+math.results.ua2<-math.results[,-c(10,11)]
+read.results.ua2<-read.results[,-c(9,10)]
+srl.results.ua2<-srl.results[,-c(22,23)]
+write.results.ua2<-write.results[,-c(3,14,15)]
+```
+
+calculate the time variables in minutes
+```{r}
+daacsua2$srlTime1<-(daacs$srlCompletionDate-daacs$srlStartDate)
+daacsua2$mathTime1<-(daacs$mathCompletionDate-daacs$mathStartDate)
+daacsua2$readTime1<-(daacs$readCompletionDate-daacs$readStartDate)/60
+daacsua2$writeTime1<-(daacs$writeCompletionDate-daacs$writeStartDate)
+srl.results.ua2$srlTime2<-
+              (srl.results$srlCompletionDate-srl.results$srlStartDate)
+math.results.ua2$mathTime2<-
+          (math.results$mathCompletionDate-math.results$mathStartDate)
+read.results.ua2$readTime2<-
+          (read.results$readCompletionDate-read.results$readStartDate)/60
+write.results.ua2$writeTime2<-
+      (write.results$writeCompletionDate-write.results$writeStartDate)/60
+```
+
+To remove the non-numeric substring "sec" from the values of srlTime
+```{r}
+#for the 1st attempts
+time_var_temp <- 
+lapply(daacsua2[49],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+daacsua2$srlTime1<-time_var_temp$srlTime1
+#for the 2nd, 3rd, and 4th attempts
+time_var_temp <- 
+lapply(srl.results.ua2[22],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+srl.results.ua2$srlTime2<-time_var_temp$srlTime2
+```
+To remove the non-numeric substring "sec" from the values of mathTime
+```{r}
+#for the 1st attempts
+time_var_temp <- 
+lapply(daacsua2[50],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+daacsua2$mathTime1<-time_var_temp$mathTime1
+#for the 2nd, 3rd, and 4th attempts
+time_var_temp <- 
+lapply(math.results.ua2[10],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+math.results.ua2$mathTime2<-time_var_temp$mathTime2
+```
+To remove the non-numeric substring "sec" from the values of readTime
+```{r}
+#for the 1st attempts
+time_var_temp <- 
+lapply(daacsua2[51],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+daacsua2$readTime1<-time_var_temp$readTime1
+#for the 2nd, 3rd, and 4th attempts
+time_var_temp <- 
+lapply(read.results.ua2[9],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+read.results.ua2$readTime2<-time_var_temp$readTime2
+```
+To remove the non-numeric substring "sec" from the values of writeTime 
+```{r}
+#for the 1st attempts
+time_var_temp <- 
+lapply(daacsua2[52],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+daacsua2$writeTime1<-time_var_temp$writeTime1
+#for the 2nd, 3rd, and 4th attempts
+time_var_temp <- 
+lapply(write.results.ua2[14],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+write.results.ua2$writeTime2<-time_var_temp$writeTime2
+```
+
+*Adjusting UA2's IDs*
+To distinguish the DAACS_IDs of different colleges, always add 10,000 to UA2 
+DAACS_IDs:
+```{r}
+daacsua2$DAACS_ID<-daacsua2$DAACS_ID+10000
+math.results.ua2$DAACS_ID<-math.results.ua2$DAACS_ID+10000
+read.results.ua2$DAACS_ID<-read.results.ua2$DAACS_ID+10000
+srl.results.ua2$DAACS_ID<-srl.results.ua2$DAACS_ID+10000
+write.results.ua2$DAACS_ID<-write.results.ua2$DAACS_ID+10000
+```
+
+*Duplicates*
+Test for duplicate values
+Frequencies: How many of non-duplicated IDs?
+```{r}
+table(duplicated(daacsua2$DAACS_ID))
+```
+
+```{r}
+table(duplicated(daacsumgc1$DAACS_ID))
+```
+*Merge*
+Combine the data from two colleges on the first attempts 
+```{r}
+daacsua2umgc1<-rbind(daacsua2,daacsumgc1)
+```
+
+*Attempts*
+How many of each number of UA2 math attempts?
+```{r}
+table(math.results.ua2$attempt,useNA = 'ifany') %>% print() %>% prop.table()*100
+```
+How many of each number of UMGC1 math attempts?
+```{r}
+table(math.results.umgc1$attempt,useNA ='ifany')%>%print() %>% prop.table()* 100
+```
+
+How many of each number of UA2 reading attempts?
+```{r}
+table(read.results.ua2$attempt,useNA ='ifany') %>% print() %>% prop.table()* 100
+```
+How many of each number of UMGC1 reading attempts?
+
+```{r}
+table(read.results.umgc1$attempt,useNA='ifany')%>% print() %>% prop.table()* 100
+```
+
+How many of each number of UA2 writing attempts?
+```{r}
+table(write.results.ua2$attempt,useNA='ifany') %>% print() %>% prop.table()* 100
+```
+How many of each number of UMGC1 writing attempts?
+```{r}
+table(write.results.umgc1$attempt,useNA='ifany')%>%print() %>% prop.table()* 100
+```
+
+How many of each number of UA2 SRL attempts?
+```{r}
+table(srl.results.ua2$attempt,useNA='ifany') %>% print() %>% prop.table()* 100
+```
+How many of each number of UMGC1 SRL attempts?
+```{r}
+table(srl.results.umgc1$attempt,useNA='ifany')%>%print() %>% prop.table()* 100
+```
+
+*Subsetting the 2nd, 3rd, and 4th attempts* 
+```{r}
+math.results.ua2MultAttWide <- math.results.ua2 [math.results.ua2$attempt == "2",]
+math.results.umgc1MultAttWide<-math.results.umgc1[math.results.umgc1$attempt =="2",]
+read.results.ua2MultAttWide <- read.results.ua2 %>% filter(attempt != 1)
+read.results.umgc1MultAttWide <- read.results.umgc1 %>% filter(attempt != 1)
+write.results.ua2MultAttWide <- write.results.ua2 %>% filter(attempt != 1)
+write.results.umgc1MultAttWide <- write.results.umgc1 %>% filter(attempt != 1)
+srl.results.ua2MultAttWide <- srl.results.ua2 %>% filter(attempt != 1)
+srl.results.umgc1MultAttWide <- srl.results.umgc1 %>% filter(attempt != 1)
+```
+
+merge the data from two colleges
+```{r}
+math.results.ua2umgc1MultAttWide<-
+  rbind(math.results.ua2MultAttWide,math.results.umgc1MultAttWide)
+read.results.ua2umgc1MultAttWide<-
+  rbind(read.results.ua2MultAttWide,read.results.umgc1MultAttWide)
+write.results.ua2umgc1MultAttWide <- 
+  rbind(write.results.ua2MultAttWide,write.results.umgc1MultAttWide)
+srl.results.ua2umgc1MultAttWide <-
+  rbind(srl.results.ua2MultAttWide,srl.results.umgc1MultAttWide)
+```
+
+merge the all attempts of the students who took more than one attempt
+```{r}
+math.ua2umgc1MultAttWide<-merge(daacsua2umgc1[,c(1,22:29,50)],
+              math.results.ua2umgc1MultAttWide,by='DAACS_ID',all.y=TRUE)
+read.ua2umgc1MultAttWide<-merge(daacsua2umgc1[,c(1,30:36,51)],
+              read.results.ua2umgc1MultAttWide,by='DAACS_ID',all.y=TRUE)
+srl.ua2umgc1MultAttWide<-merge(daacsua2umgc1[,c(1:21,49)],
+              srl.results.ua2umgc1MultAttWide,by='DAACS_ID',all.y=TRUE)
+write.ua2umgc1MultAttWide<-merge(daacsua2umgc1[,c(1,37:48,52)],
+            write.results.ua2umgc1MultAttWide,by='DAACS_ID',all.y=TRUE)
+```
+
+*Rename*
+rename the variables
+```{r}
+colnames(read.ua2umgc1MultAttWide) <- c("DAACS_ID","attempt.1",
+         "structure.1","inference.1","language.1","purpose.1","ideas.1",
+         "readTotal.1","readTime.1","attempt.2","structure.2","inference.2",
+         "language.2","purpose.2","ideas.2","readTotal.2","readTime.2")
+colnames(math.ua2umgc1MultAttWide) <- c("DAACS_ID","attempt.1",
+        "word_problems.1" ,"lines_and_functions.1","variables_and_equations.1",
+        "number_and_calculation.1","statistics.1","geometry.1","mathTotal.1",
+        "mathTime.1","attempt.2","word_problems.2" ,"lines_and_functions.2",
+        "variables_and_equations.2","number_and_calculation.2","statistics.2",
+        "geometry.2","mathTotal.2","mathTime.2")
+colnames(write.ua2umgc1MultAttWide) <- c("DAACS_ID","attempt.1","summary.1",
+          "suggestions.1","structure.1","transitions.1","ideas.1","cohesion.1",
+          "correct.1","complexity.1","usage.1","punctuation.1","writeTotal.1",
+          "writeTime.1","attempt.2","summary.2","suggestions.2","structure.2",
+          "transitions.2","ideas.2","cohesion.2","correct.2","complexity.2",
+          "usage.2","punctuation.2","writeTotal.2","writeTime.2")
+colnames(srl.ua2umgc1MultAttWide) <- c("DAACS_ID","attempt.1","strategies.1",
+        "motivation.1","metacognition.1","selfefficacy.1","managing_time.1",
+        "help_seeking.1","managing_environment.1","understanding.1","anxiety.1",
+        "mastery_orientation.1","mindset.1","evaluation.1","monitoring.1",
+        "planning.1","self_efficacy_for_mathematics2.1",
+        "selfefficacy_for_online_learning.1","selfefficacy_for_reading.1",
+        "selfefficacy_for_writing.1","srlTotal.1",
+        "srlTime.1","attempt.2","strategies.2","motivation.2","metacognition.2",
+        "selfefficacy.2","managing_time.2","help_seeking.2",
+        "managing_environment.2","understanding.2","anxiety.2",
+        "mastery_orientation.2","mindset.2","evaluation.2","monitoring.2",
+        "planning.2","self_efficacy_for_mathematics.2",
+        "selfefficacy_for_online_learning.2","selfefficacy_for_reading.2",
+        "selfefficacy_for_writing.2","srlTotal.2","srlTime.2")                                          
+```
+
+*Saving New Datasets*
+```{r}
+# saveRDS(math.ua2umgc1MultAttWide, file = 'math.ua2umgc1MultAttWide.rds')
+# write_sav(math.ua2umgc1MultAttWide, "math.ua2umgc1MultAttWide.sav")
+# write.table(math.ua2umgc1MultAttWide,'math.ua2umgc1MultAttWide.csv',sep=',')
+# saveRDS(read.ua2umgc1MultAttWide, file = 'read.ua2umgc1MultAttWide.rds')
+# write_sav(read.ua2umgc1MultAttWide, "read.ua2umgc1MultAttWide.sav")
+# write.table(read.ua2umgc1MultAttWide,'read.ua2umgc1MultAttWide.csv',sep=',')
+# saveRDS(srl.ua2umgc1MultAttWide, file = 'srl.ua2umgc1MultAttWide.rds')
+# write_sav(srl.ua2umgc1MultAttWide, "srl.ua2umgc1MultAttWide.sav")
+# write.table(srl.ua2umgc1MultAttWide,'srl.ua2umgc1MultAttWide.csv',sep=',')
+# saveRDS(write.ua2umgc1MultAttWide, file = 'write.ua2umgc1MultAttWide.rds')
+# write_sav(write.ua2umgc1MultAttWide, "write.ua2umgc1MultAttWide.sav")
+# write.table(write.ua2umgc1MultAttWide,'write.ua2umgc1MultAttWide.csv',sep=',')
+```
+
+*Transform*
+Transform the data from wide into long datasets with the 1st and 2nd attempts.
+
+Remove the 3rd and 4th attempts.
+```{r}
+read.ua2umgc1.2attWide<- 
+  read.ua2umgc1MultAttWide[read.ua2umgc1MultAttWide$attempt.2== 2,]
+math.ua2umgc1.2attWide<- 
+  math.ua2umgc1MultAttWide[math.ua2umgc1MultAttWide$attempt.2== 2,]
+srl.ua2umgc1.2attWide<- 
+  srl.ua2umgc1MultAttWide[srl.ua2umgc1MultAttWide$attempt.2== 2,]
+write.ua2umgc1.2attWide<- 
+  write.ua2umgc1MultAttWide[write.ua2umgc1MultAttWide$attempt.2== 2,]
+```
+
+split each file into two files: one file per attempt. Then combine those two 
+files again into a long dataset.
+```{r}
+#Reading
+read.ua2umgc1.1stAtt<-read.ua2umgc1.2attWide[,c(1:9)]
+read.ua2umgc1.2ndAtt<-read.ua2umgc1.2attWide[,c(1,10:17)]
+colnames(read.ua2umgc1.1stAtt)<-c("DAACS_ID","attempt","structure","inference",
+                        "language","purpose","ideas","readTotal","readTime")
+colnames(read.ua2umgc1.2ndAtt)<-c("DAACS_ID","attempt","structure","inference",
+                        "language","purpose","ideas","readTotal","readTime")
+read.ua2umgc1.2attLong<-rbind(read.ua2umgc1.1stAtt,read.ua2umgc1.2ndAtt)
+#Writing
+write.ua2umgc1.1stAtt<-write.ua2umgc1.2attWide[,c(1:14)]
+write.ua2umgc1.2ndAtt<-write.ua2umgc1.2attWide[,c(1,15:27)]
+colnames(write.ua2umgc1.1stAtt)<-c("DAACS_ID","attempt","summary","suggestions",
+            "structure","transitions","ideas","cohesion","correct","complexity",
+            "usage","punctuation","writeTotal","writeTime")
+colnames(write.ua2umgc1.2ndAtt)<-c("DAACS_ID","attempt","summary","suggestions",
+            "structure","transitions","ideas","cohesion","correct","complexity",
+            "usage","punctuation","writeTotal","writeTime")
+write.ua2umgc1.2attLong<-rbind(write.ua2umgc1.1stAtt,write.ua2umgc1.2ndAtt)
+#Math
+math.ua2umgc1.1stAtt<-math.ua2umgc1.2attWide[,c(1:10)]
+math.ua2umgc1.2ndAtt<-math.ua2umgc1.2attWide[,c(1,11:19)]
+colnames(math.ua2umgc1.1stAtt)<-c("DAACS_ID","attempt","word_problems",
+      "lines_and_functions","variables_and_equations","number_and_calculation",
+      "statistics","geometry","mathTotal","mathTime")
+colnames(math.ua2umgc1.2ndAtt)<-c("DAACS_ID","attempt","word_problems",
+      "lines_and_functions","variables_and_equations","number_and_calculation",
+      "statistics","geometry","mathTotal","mathTime")
+math.ua2umgc1.2attLong<-rbind(math.ua2umgc1.1stAtt,math.ua2umgc1.2ndAtt)
+#SRL
+srl.ua2umgc1.1stAtt<-srl.ua2umgc1.2attWide[,c(1:22)]
+srl.ua2umgc1.2ndAtt<-srl.ua2umgc1.2attWide[,c(1,23:43)]
+colnames(srl.ua2umgc1.1stAtt)<-c("DAACS_ID","attempt","strategies",
+    "motivation","metacognition","selfefficacy","managing_time","help_seeking",
+    "managing_environment","understanding","anxiety","mastery_orientation",
+    "mindset","evaluation","monitoring","planning",
+    "self_efficacy_for_mathematics","selfefficacy_for_online_learning",
+    "selfefficacy_for_reading","selfefficacy_for_writing","srlTotal","srlTime")
+colnames(srl.ua2umgc1.2ndAtt)<-c("DAACS_ID","attempt","strategies",
+    "motivation","metacognition","selfefficacy","managing_time","help_seeking",
+    "managing_environment","understanding","anxiety","mastery_orientation",
+    "mindset","evaluation","monitoring","planning",
+    "self_efficacy_for_mathematics","selfefficacy_for_online_learning",
+    "selfefficacy_for_reading","selfefficacy_for_writing","srlTotal","srlTime")
+srl.ua2umgc1.2attLong<-rbind(srl.ua2umgc1.1stAtt,srl.ua2umgc1.2ndAtt)
+```
+
+*Research Question*
+Is there difference between the first and the second attempts' scores?
+
+*Group Mean and SD*
+summary statistics by groups
+
+Reading
+```{r}
+read.ua2umgc1.2attLong %>%
+  group_by(attempt) %>%
+  get_summary_stats(c(2:8), type = "mean_sd")
+```
+
+Writing
+```{r}
+write.ua2umgc1.2attLong %>%
+  group_by(attempt) %>%
+  get_summary_stats(c(2:13), type = "mean_sd")
+```
+Math
+```{r}
+math.ua2umgc1.2attLong %>%
+  group_by(attempt) %>%
+  get_summary_stats(c(2:9), type = "mean_sd")
+```
+
+SRL
+```{r}
+srl.ua2umgc1.2attLong %>%
+  group_by(attempt) %>%
+  get_summary_stats(c(2:21), type = "mean_sd")
+```
+
+*Paired T-test*
+Reading Total Score result (N=49): there is no difference between the first and the 
+second attempts.
+```{r}
+readTtest <- t.test(readTotal ~ attempt,data = read.ua2umgc1.2attLong,paired = TRUE)
+readTtest
+```
+Math Total Score result (N=30): there is no difference between the first and the 
+second attempts.
+```{r}
+mathTtest <- t.test(mathTotal ~ attempt,data = math.ua2umgc1.2attLong,paired = TRUE)
+mathTtest
+```
+Writing Total Score result (N=15): there is no difference between the first and the 
+second attempts.
+```{r}
+writeTtest <- t.test(writeTotal ~ attempt,data = write.ua2umgc1.2attLong,paired = TRUE)
+writeTtest
+```
+SRL Total Score result (N=92): there is statistically significant difference between 
+the first and the second attempts.The second attempt's score is on average 0.124 
+point higher than the score for the first attempt. 
+```{r}
+srlTtest <- t.test(srlTotal ~ attempt,data = srl.ua2umgc1.2attLong,paired = TRUE)
+srlTtest
+```
+Another way to run a t-test
+
+```{r}
+srlT.test <- srl.ua2umgc1.2attLong %>% 
+  t_test(srlTotal ~ attempt,paired = TRUE) %>%
+  add_significance()
+srlT.test
+```
+
+*Effect Size*
+
+The effect size (Cohen’s d) for a paired-samples t-test can be calculated by 
+dividing the mean difference by the standard deviation of the difference.
+```{r}
+srl.ua2umgc1.2attLong %>% cohens_d(srlTotal ~ attempt, paired = TRUE)
+```
+
+*Visualize the Results*
+
+Two ways to build a boxplot:
+1.
+```{r}
+bxp1 <- ggpaired(srl.ua2umgc1.2attLong, x = "attempt", y = "srlTotal", 
+         order = c("1", "2"),
+         ylab = "srlTotal", xlab = "Attempt #")
+bxp1
+```
+
+```{r}
+srlT.test <- srlT.test %>% add_xy_position(x = "attempt")
+bxp1 + 
+  stat_pvalue_manual(srlT.test, tip.length = 0) +
+  labs(subtitle = get_test_label(srlT.test, detailed= TRUE))
+```
+
+2.
+```{r}
+bxp2 <- ggboxplot(
+  srl.ua2umgc1.2attLong, x = "attempt", y = "srlTotal", 
+  ylab = "srlTotal", xlab = "Attempt #", add = "jitter"
+  )
+bxp2
+```
+
+```{r}
+srlT.test <- srlT.test %>% add_xy_position(x = "attempt")
+bxp2 + 
+  stat_pvalue_manual(srlT.test, tip.length = 0) +
+  labs(subtitle = get_test_label(srlT.test, detailed = TRUE))
+```
+
+Can we interpret the results of insignificant results of the t-tests on math, 
+reading, and writing assessment as an evidence of a test-retest validity?
+It depends on whether the small samples are sufficient or have enough 
+statistical power.
+
+*Power Test*
+The desired power level is typically 0.8
+
+The 16-student sample on writing assessment is sufficient to find a large effect 
+size of d>=0.9, but is too small to find a medium effect size of d=0.3.
+```{r}
+pwr.t.test(n=16,d=0.9,sig.level=0.05,type="paired",alternative="two.sided")
+```
+```{r}
+pwr.t.test(n=16,d=0.3,sig.level=0.05,type="paired",alternative="two.sided")
+```
+The 30-student sample on math assessment is sufficient to find a large effect 
+size of d>=0.6, but is too small to find a medium effect size of d=0.3.
+```{r}
+pwr.t.test(n=30,d=0.6,sig.level=0.05,type="paired",alternative="two.sided")
+```
+```{r}
+pwr.t.test(n=30,d=0.3,sig.level=0.05,type="paired",alternative="two.sided")
+```
+The 55-student sample on reading assessment is sufficient to find a medium 
+effect size of d>=0.4, but is too small to find a medium effect size of d=0.3.
+```{r}
+pwr.t.test(n=55,d=0.4,sig.level=0.05,type="paired",alternative="two.sided")
+```
+
+```{r}
+pwr.t.test(n=55,d=0.3,sig.level=0.05,type="paired",alternative="two.sided")
+```
+The 95-student sample on srl assessment is sufficient to find a medium effect 
+size of d>=0.3, but is too small to find a small effect size of d=0.2.
+```{r}
+pwr.t.test(n=95,d=0.3,sig.level=0.05,type="paired",alternative="two.sided")
+```
+
+```{r}
+pwr.t.test(n=95,d=0.2,sig.level=0.05,type="paired",alternative="two.sided")
+```

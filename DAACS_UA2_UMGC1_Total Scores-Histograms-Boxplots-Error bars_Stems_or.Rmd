@@ -1,0 +1,166 @@
+---
+title: "DAACS_UA2_UMGC1_Total Scores-Histograms-Boxplots-Error bars"
+author: "Oxana Rosca"
+date: "2023-01-06"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(psych)
+```
+
+Load the data file
+```{r}
+global_ua2umgc1 <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/global_ua2umgc1.rds")
+```
+
+Total Number of Participants and Demographics or how many participants and 
+variables you have:
+```{r}
+dim(global_ua2umgc1)
+```
+
+*Verify the File*
+Test for duplicate values DAACS_ID
+Frequencies: How many of non-duplicated IDs?
+```{r}
+table(duplicated(global_ua2umgc1$DAACS_ID))
+```
+Test for empty rows:
+```{r}
+global_ua2umgc1_Check<-
+  global_ua2umgc1[rowSums(is.na(global_ua2umgc1))!=ncol(global_ua2umgc1),]
+```
+Comparing the # of cases, there are no empty rows
+
+See the minimum time taken for every assessment IN MINUTES
+```{r}
+min(global_ua2umgc1$readTime, na.rm = TRUE)
+min(global_ua2umgc1$mathTime, na.rm = TRUE)
+min(global_ua2umgc1$srlTime, na.rm = TRUE)
+min(global_ua2umgc1$writeTime, na.rm = TRUE)
+```
+Check that only the first attempts are subset:
+```{r}
+max(global_ua2umgc1$read_attempt, na.rm = TRUE)
+max(global_ua2umgc1$math_attempt, na.rm = TRUE)
+max(global_ua2umgc1$srl_attempt, na.rm = TRUE)
+max(global_ua2umgc1$write_attempt, na.rm = TRUE)
+```
+
+*Descriptives*
+for the SRL scores for the combined sample (ua2 and umgc1)
+
+```{r}
+describe(global_ua2umgc1[,c(3:6)])
+```
+
+for the SRL scores by the college variable
+```{r}
+describeBy(global_ua2umgc1[,c(3:6)],global_ua2umgc1$college)
+```
+
+DAACS scores for the combined sample (ua2 and umgc1)
+```{r}
+describe(global_ua2umgc1[,c(39,49,236)])
+```
+
+
+DAACS scores by the college variable
+```{r}
+describeBy(global_ua2umgc1[,c(39,49,236)],global_ua2umgc1$college)
+```
+
+*Error Bars*
+Graph the data with error bars for each variable
+
+```{r}
+error.bars(global_ua2umgc1 [,c(3:6)],density = 0,ylab= "Mean Score",
+      xlab="SRL Scales",main ="95% CIs for Means on SRL Scales, UA2 and UMGC1")
+```
+
+```{r}
+error.bars(global_ua2umgc1 [,c(39,49,236)],density = 0,ylab= "Mean Score",
+      xlab="SRL Scales",main ="95% CIs for Means on DAACS scales,UA2 and UMGC1")
+```
+
+```{r}
+error.bars(global_ua2umgc1 [c(1:1062),c(3:6)],density = 0,ylab= "Mean Score",
+      xlab="SRL Scales",main ="95% CIs for Means on SRL Scales, UMGC1")
+```
+
+```{r}
+error.bars(global_ua2umgc1 [c(1:1062),c(39,49,236)],density = 0,ylab= "Mean Score",
+      xlab="SRL Scales",main ="95% CIs for Means on DAACS scales, UMGC1")
+```
+
+
+```{r}
+error.bars(global_ua2umgc1 [c(1063:2208),c(3:6)],density = 0,ylab= "Mean Score",
+      xlab="SRL Scales",main ="95% CIs for Means on SRL Scales, UA2")
+```
+
+```{r}
+error.bars(global_ua2umgc1 [c(1063:2208),c(39,49,236)],density = 0,ylab= "Mean Score",
+      xlab="DAACS Scales",main ="95% CIs for Means on DAACS Scales, UA2")
+```
+
+
+```{r}
+error.bars(global_ua2umgc1 [,c(3)],density=-1,ylim= c(2.4,2.6),ann=FALSE,
+      xlab="SRL Scales",main ="95% CIs for Means on SRL Scales, UA2 and UMGC1",
+      group = global_ua2umgc1$college)
+```
+*Boxplots*
+
+```{r}
+boxplot(global_ua2umgc1 [,c(3:6)])
+```
+
+
+```{r}
+boxplot(global_ua2umgc1$srl_strategies~global_ua2umgc1$college, notch=TRUE)
+```
+Since the notches of two plots do not overlap, there is a ‘strong evidence’ that 
+the two medians differ (Chambers et al, 1983, p. 62).
+```{r}
+boxplot(global_ua2umgc1$srl_strategies~global_ua2umgc1$college, notch=TRUE, plot=FALSE)
+```
+
+
+```{r}
+boxplot(global_ua2umgc1 [,c(39,49,236)])
+```
+
+```{r}
+boxplot(global_ua2umgc1$mathTotal,global_ua2umgc1$college, notch=TRUE)
+```
+Since the notches of two plots do not overlap, there is a ‘strong evidence’ that 
+the two medians differ (Chambers et al, 1983, p. 62).
+```{r}
+boxplot(global_ua2umgc1$mathTotal,global_ua2umgc1$college, notch=TRUE,plot=FALSE)
+```
+
+
+```{r}
+stem(global_ua2umgc1$mathTotal)
+```
+
+```{r}
+stem(global_ua2umgc1$readTotal)
+```
+
+```{r}
+stem(global_ua2umgc1$writeTotal)
+```
+
+```{r}
+stem(global_ua2umgc1$srlTotal)
+```

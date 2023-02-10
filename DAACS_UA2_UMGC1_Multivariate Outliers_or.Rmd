@@ -1,0 +1,235 @@
+---
+title: "DAACS_UA2_UMGC1_Testing for Multivariate Outliers_OR"
+author: "Oxana Rosca"
+date: "2022-12-16"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(psych)
+library(haven)
+```
+
+Load the data file
+```{r}
+global_ua2umgc1 <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/global_ua2umgc1.rds")
+```
+
+*Verify the File*
+
+Total Number of Participants and Demographics or how many participants and 
+variables you have:
+```{r}
+dim(global_ua2umgc1)
+```
+
+Test for duplicate values DAACS_ID
+Frequencies: How many of non-duplicated IDs?
+```{r}
+table(duplicated(global_ua2umgc1$DAACS_ID))
+```
+Test for empty rows:
+```{r}
+global_ua2umgc1_Check<-
+  global_ua2umgc1[rowSums(is.na(global_ua2umgc1))!=ncol(global_ua2umgc1),]
+```
+The # of cases in the _check dataframe remains the same; hence, there are no 
+empty rows
+
+See the minimum time taken for every assessment IN MINUTES
+```{r}
+min(global_ua2umgc1$readTime, na.rm = TRUE)
+min(global_ua2umgc1$mathTime, na.rm = TRUE)
+min(global_ua2umgc1$srlTime, na.rm = TRUE)
+min(global_ua2umgc1$writeTime, na.rm = TRUE)
+```
+
+Check that only the first attempts are subset:
+```{r}
+max(global_ua2umgc1$read_attempt, na.rm = TRUE)
+max(global_ua2umgc1$math_attempt, na.rm = TRUE)
+max(global_ua2umgc1$srl_attempt, na.rm = TRUE)
+max(global_ua2umgc1$write_attempt, na.rm = TRUE)
+```
+
+*Mahalanobis' distance*
+
+Mahalanobis' distance (mah.distance) is a statistical measure of the extent to which cases 
+are multivariate outliers, based on a chi-square distribution, assessed using 
+p < .001. The critical chi-square values for 4 degrees of freedom at a critical 
+alpha of .001 is 18.47: https://en.wikiversity.org/wiki/Mahalanobis%27_distance.
+
+A maximum mah.distance larger than the critical chi-square value for df = k (the number of 
+predictor variables in the model) at a critical alpha value of .001 indicates 
+the presence of one or more multivariate outliers.
+
+*Outliers on the Total Scores*
+
+Subset the total scores for four assessments
+```{r}
+totalScores<-global_ua2umgc1[,c(21,49,236,39)]
+```
+
+```{r}
+mah.distance<-outlier(totalScores)
+outliers_totalScores <- data.frame(totalScores,mah.distance)
+pairs.panels(outliers_totalScores,bg=c("grey","blue")[(mah.distance>18.47)+1],
+             pch=21,main="Multivariate Outliers for Total Scores")
+```
+Add the ID variable to the dataset:
+```{r}
+outliers_totalScores$srlTime <- global_ua2umgc1$srlTime
+outliers_totalScores$mathTime <- global_ua2umgc1$mathTime
+outliers_totalScores$readTime <- global_ua2umgc1$readTime
+outliers_totalScores$writeTime <- global_ua2umgc1$writeTime
+outliers_totalScores$DAACS_ID <- global_ua2umgc1$DAACS_ID
+```
+
+```{r}
+outliers_totalScores <- 
+ outliers_totalScores[which(outliers_totalScores$mah.distance>18.47),]
+outliers_totalScores
+```
+
+*Verify the File*
+
+Duplicate DAACS_IDs
+```{r}
+table(duplicated(outliers_totalScores$DAACS_ID))
+```
+Test for empty rows:
+```{r}
+outliers_totalScores_Check<-
+outliers_totalScores[rowSums(is.na(outliers_totalScores))!=ncol(outliers_totalScores),]
+```
+
+*Save New File*
+```{r}
+saveRDS(outliers_totalScores, file = 'MV outliers_totalScores.rds')
+write_sav(outliers_totalScores, "MV outliers_totalScores.sav")
+write.table(outliers_totalScores, 'MV outliers_totalScores.csv', sep=',')
+```
+
+*Outliers on the Math Domains*
+
+Subset the scores for Math Domains
+```{r}
+df<-global_ua2umgc1[,c(43:49)]
+```
+
+```{r}
+mah.distance<-outlier(df)
+outliers_df <- data.frame(df,mah.distance)
+pairs.panels(outliers_df,bg=c("grey","blue")[(mah.distance>24.32)+1],
+             gap=0,pch=21,main="Multivariate Outliers for Math Domains")
+```
+Add the ID variable to the dataset:
+```{r}
+outliers_df$mathTime <- global_ua2umgc1$mathTime
+outliers_df$DAACS_ID <- global_ua2umgc1$DAACS_ID
+```
+
+```{r}
+outliers_math <- 
+ outliers_df[which(outliers_df$mah.distance>26.13),]
+outliers_math
+```
+*Verify the File*
+```{r}
+table(duplicated(outliers_math$DAACS_ID))
+outliers_math_Check<-
+outliers_math[rowSums(is.na(outliers_math))!=ncol(outliers_math),]
+```
+
+*Save New File*
+```{r}
+saveRDS(outliers_math, file = 'multivariate outliers_math.rds')
+write_sav(outliers_math, "multivariate outliers_math.sav")
+write.table(outliers_math, 'multivariate outliers_math.csv', sep=',')
+```
+
+*Outliers on Reading Domains*
+
+Subset the scores for Reading Domains
+```{r}
+df<-global_ua2umgc1[,c(231:236)]
+```
+
+```{r}
+mah.distance<-outlier(df)
+outliers_df <- data.frame(df,mah.distance)
+pairs.panels(outliers_df,bg=c("grey","blue")[(mah.distance>22.46)+1],
+             gap=0,pch=21,main="Multivariate Outliers on Reading Domains")
+```
+Add the ID variable to the dataset:
+```{r}
+outliers_df$readTime <- global_ua2umgc1$readTime
+outliers_df$DAACS_ID <- global_ua2umgc1$DAACS_ID
+```
+
+```{r}
+outliers_read <- 
+ outliers_df[which(outliers_df$mah.distance>24.32),]
+outliers_read
+```
+*Verify the File*
+```{r}
+table(duplicated(outliers_read$DAACS_ID))
+outliers_read_Check<-
+outliers_read[rowSums(is.na(outliers_read))!=ncol(outliers_read),]
+```
+
+*Save New File*
+```{r}
+saveRDS(outliers_read, file = 'multivariate outliers_read.rds')
+write_sav(outliers_read, "multivariate outliers_read.sav")
+write.table(outliers_read, 'multivariate outliers_read.csv', sep=',')
+```
+
+*Outliers on Writing Criteria*
+
+Subset the scores for Writing Criteria
+```{r}
+df<-global_ua2umgc1[,c(27:36)]
+```
+
+```{r}
+mah.distance<-outlier(df)
+outliers_df <- data.frame(df,mah.distance)
+pairs.panels(outliers_df,bg=c("grey","blue")[(mah.distance>29.59)+1],
+             gap=0,pch=21,main="Multivariate Outliers on Writing Criteria")
+```
+Add the ID variable to the dataset:
+```{r}
+outliers_df$writeTime <- global_ua2umgc1$writeTime
+outliers_df$DAACS_ID <- global_ua2umgc1$DAACS_ID
+```
+
+```{r}
+outliers_write <- 
+ outliers_df[which(outliers_df$mah.distance>24.32),]
+outliers_write
+```
+*Verify the File*
+```{r}
+table(duplicated(outliers_write$DAACS_ID))
+outliers_write_Check<-
+outliers_write[rowSums(is.na(outliers_write))!=ncol(outliers_write),]
+```
+The scales on the graphical outputs of multivariate outliers confirm that there 
+are no negative values on the scores, nether values greater than the maximum 
+values on the score ranges. There are no weird subjects or data entry errors.
+
+*Save New File*
+```{r}
+saveRDS(outliers_write, file = 'multivariate outliers_write.rds')
+write_sav(outliers_write, "multivariate outliers_write.sav")
+write.table(outliers_write, 'multivariate outliers_write.csv', sep=',')
+```

@@ -1,0 +1,125 @@
+---
+title: "DAACS_Writing_DataOrganizing_UA2_Sep16_2022_OR"
+author: "Oxana Rosca"
+date: "2022-12-02"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+*This script must be run only after* 
+*the "DAACS_SRL_DataOrganizing-Descriptives_UA2_Sep 16_2022_OR.r" and*
+*before the "DAACS_Combining Colleges into Global and Speedy datasets_OR.r"*
+
+```{r}
+library(maditr)
+library(ggplot2)
+library(haven)
+```
+
+#setwd("D:OneDrive - University at Albany - SUNY/WorkDirectory")
+
+Because writing assessment could be taken only after taking the SRL survey, we 
+do not need to create a separate dataset for students who took writing 
+assessments. We need only to create the variables of total writing score in dots 
+and writeTime and add them to the SRL dataset.
+
+
+Load data files
+```{r}
+load("data_export/DAACS-Results-albany_2022-09-16.rda")
+#load("D:/OneDrive - University at Albany -SUNY/WorkDirectory/data_export/DAACS-Results-albany_2022-09-16.rda")
+#load("data_export/ua2SRLDaacs.rds")
+#load("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/ua2SRLDaacs.rds")
+ua2SRLDaacs <- 
+  readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/ua2SRLDaacs.rds")
+```
+
+
+*Duplicates*
+Test for duplicate values in write.results
+Frequencies: How many of non-duplicated IDs?
+```{r}
+table(duplicated(write.results$DAACS_ID))
+```
+There are 4 duplicated DAACS_ID in write.results (they are the second attempts)
+
+*Attempts*
+How many of each number of attempts?
+```{r}
+table(write.results$attempt, useNA = 'ifany') %>% 
+  print() %>% prop.table()* 100
+```
+The ua2SRLDaacs dataset is a subset of all students from daacs.rds who took 
+SRL assessment It includes all writing scores from the first attempts of all 
+students who took writing assessment. 
+
+*Test Time*
+Calculate test time in minutes per student:
+```{r}
+ua2SRLDaacs$writeTime= (ua2SRLDaacs$writeCompletionDate - 
+                            ua2SRLDaacs$writeStartDate)
+```
+
+To remove the non-numeric substring "min" from the values of writeTime 
+```{r}
+time_var_temp <- 
+lapply(ua2SRLDaacs[83],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+View(time_var_temp)
+ua2SRLDaacs$writeTime<-time_var_temp$writeTime
+View(ua2SRLDaacs)
+```
+
+see the minimum value IN MINUTES
+```{r}
+min(ua2SRLDaacs$writeTime, na.rm = TRUE)
+```
+*Total Score*
+Histogram of the writing total scores
+```{r}
+library(ggplot2)
+ggplot(ua2SRLDaacs, aes(x = writeTotal)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('Write Total') +   
+                    ylab('Number of Students')
+```
+Cut the variable of scores into three categories of dots
+```{r}
+ua2SRLDaacs$writeTotalDots <- cut(ua2SRLDaacs$writeTotal,
+                            breaks=c(0, 0.33, 0.66, 1),labels=c('1', '2', '3'))
+```
+
+To build a bar-plot of the reading scores in dots
+
+```{r}
+table(ua2SRLDaacs$writeTotalDots)
+```
+
+```{r}
+barplot(table(ua2SRLDaacs$writeTotalDots),
+        main="ua2 Write Total Score in Dots",
+        xlab="Write Total in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+To check if there are empty rows:
+```{r}
+ua2SRLDaacs_Check<-
+  ua2SRLDaacs[rowSums(is.na(ua2SRLDaacs))!=ncol(ua2SRLDaacs),]
+```
+Comparing the # of cases, there are no empty rows
+
+*Save New File*
+
+```{r}
+saveRDS(ua2SRLDaacs, file = 'ua2SRLDaacs.rds')
+write_sav(ua2SRLDaacs, "ua2SRLDaacs.sav")#library(haven)
+write.table(ua2SRLDaacs, 'ua2SRLDaacs.csv', sep=',')
+```

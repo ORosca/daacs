@@ -1,0 +1,186 @@
+---
+title: "DAACS_read_DataOrganizing_UMGC1_Sep16_2022_OR"
+author: "Oxana Rosca"
+date: "2022-10-09"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(psych)
+library(ggplot2)
+library(maditr)
+library(stringr)
+library(haven)
+```
+
+If needed:
+setwd("D:OneDrive - University at Albany - SUNY/WorkDirectory")
+
+Load data files
+```{r}
+load("data_export/DAACS-Results-umgc_2022-09-16.rda")
+```
+
+Use str_replace() method from stringr package to replace part of a column string 
+with another string in R DataFrame.
+```{r}
+read.items$qid <- str_replace(read.items$qid,"Q", "rQ")
+```
+
+*Duplicates*
+Test for duplicate values in read.items.response
+Frequencies: How many of non-duplicated IDs?
+```{r}
+table(duplicated(daacs$DAACS_ID))
+```
+
+```{r}
+table(duplicated(read.items$DAACS_ID))
+```
+read.items is a long dataset with many rows per a test-taker
+
+*Attempts*
+How many of each number of attempts?
+```{r}
+table(read.items$attempt, useNA = 'ifany') %>% print() %>% prop.table()* 100
+```
+Select the first attempts only
+```{r}
+read.items <- read.items [read.items$attempt == "1",]
+```
+
+*Restructure*
+re-structure =long dataset from wide dataset
+```{r}
+umgc1ReadDaacs <- dcast(read.items,DAACS_ID ~ qid,value.var = 'score')
+```
+
+*Merge*
+Using all.y = TRUE so that we use only students provided from 
+umgc1. These are all newly enrolled students' data on Sep 16th, 2022 (Removing 
+all students that did not take read assessment)
+```{r}
+umgc1ReadDaacs <- merge(daacs,umgc1ReadDaacs,by = 'DAACS_ID', all.y = TRUE)
+```
+
+*Test Time*
+Calculate test time in minutes per student:
+```{r}
+umgc1ReadDaacs$readTime= (umgc1ReadDaacs$readCompletionDate - 
+                            umgc1ReadDaacs$readStartDate)/60
+```
+
+To remove the non-numeric substring "sec" from the values of readTime
+```{r}
+time_var_temp <- 
+lapply(umgc1ReadDaacs[242],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+View(time_var_temp)
+umgc1ReadDaacs$readTime<-time_var_temp$readTime
+View(umgc1ReadDaacs)
+```
+
+see the minimum value IN MINUTES
+
+```{r}
+min(umgc1ReadDaacs$readTime)
+```
+
+What is the shortest time IN MINUTES for a student to get a perfect score
+```{r}
+min(umgc1ReadDaacs[umgc1ReadDaacs$readTotal == 1.0,]$readTime)
+```
+What is the shortest time IN MINUTES for a student to get at least 70%
+```{r}
+min(umgc1ReadDaacs[umgc1ReadDaacs$readTotal >= .7,]$readTime)
+```
+How many students took less than 3.5 minutes?
+```{r}
+nrow(umgc1ReadDaacs[umgc1ReadDaacs$readTime <= 3.5,])
+```
+To create a separate dataset of speedy students,
+1)Create a vector of the row numbers of the speedy students:
+```{r}
+speedy<-which (umgc1ReadDaacs$readTime <= 3.5)
+```
+
+2)subset the rows of the speedy students as a dataframe:
+```{r}
+umgc1ReadSpeedy<-umgc1ReadDaacs[speedy, ]
+umgc1ReadSpeedy[,c(1,42,242)]
+```
+
+```{r}
+umgc1ReadSpeedy$DAACS_ID
+```
+
+11 speedy students with DAACS_ID 34, 174, 204, 396  428, 522, 745, 807,  984, 
+1011, and 1032 took less than 3.5 minutes for the reading assessment and less 
+than 3 minutes for the math assessment.
+11 speedy students with DAACS_ID 48,  194, 326,  505,  599,  614,  657,  804,  
+986, 1022, and 1057 took less than 3 minutes for the math assessment.
+
+Remove 22 speedy students (who completed the assesments in 3.5 minutes or less)
+```{r}
+umgc1ReadDaacs <- umgc1ReadDaacs[umgc1ReadDaacs$readTime > 3.5,]
+```
+
+
+*Total Score*
+Histogram of the reading scores in points
+```{r}
+ggplot(umgc1ReadDaacs, aes(x = readTotal)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('Read Total') +   
+                    ylab('Number of Students')
+```
+Cut the variable of scores into three categories of dots
+```{r}
+umgc1ReadDaacs$readTotalDots <- cut(umgc1ReadDaacs$readTotal,
+                              breaks=c(0, 0.7, 0.9, 1),labels=c('1', '2', '3'))
+```
+
+To build a bar-plot of the reading scores in dots
+
+```{r}
+table(umgc1ReadDaacs$readTotalDots)
+```
+
+```{r}
+barplot(table(umgc1ReadDaacs$readTotalDots),
+        main="UMGC1 Reading Total Score in Dots",
+          xlab="Read Total in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+To check if there are empty rows:
+```{r}
+umgc1ReadDaacs_Check<-
+  umgc1ReadDaacs[rowSums(is.na(umgc1ReadDaacs))!=ncol(umgc1ReadDaacs),]
+```
+Comparing the # of cases, there are no empty rows
+
+*Save New File*
+Adding a variable of college and saving the new data file:
+```{r}
+umgc1ReadDaacs$college <- 'UMGC1'
+saveRDS(umgc1ReadDaacs, file = 'umgc1ReadDaacs.rds')
+write_sav(umgc1ReadDaacs, "umgc1ReadDaacs.sav")
+write.table(umgc1ReadDaacs, 'umgc1ReadDaacs.csv', sep=',')
+saveRDS(umgc1ReadSpeedy, file = 'umgc1ReadSpeedy.rds')
+write_sav(umgc1ReadSpeedy, "umgc1ReadSpeedy.sav")
+write.table(umgc1ReadSpeedy, 'umgc1ReadSpeedy.csv', sep=',')
+```
+
+*Total Number of Participants and Demographics*
+how many paricipants and variables you have 
+```{r}
+dim(umgc1ReadDaacs)
+```

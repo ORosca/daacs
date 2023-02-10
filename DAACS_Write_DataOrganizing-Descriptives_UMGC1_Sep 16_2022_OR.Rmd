@@ -1,0 +1,151 @@
+---
+title: "DAACS_Writing_DataOrganizing_umgc1_Sep16_2022_OR"
+author: "Oxana Rosca"
+date: "2022-12-02"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+*This script must be run only after* 
+*the "DAACS_SRL_DataOrganizing-Descriptives_UMGC1_Sep 16_2022_OR.r" and*
+*before the "DAACS_Combining Colleges into Global and Speedy datasets_OR.r"*
+
+```{r}
+library(maditr)
+library(ggplot2)
+library(haven)
+```
+
+#setwd("D:OneDrive - University at Albany - SUNY/WorkDirectory")
+
+Because writing assessment could be taken only after taking the SRL survey, we 
+do not need to create a separate dataset for students who took writing 
+assessments. We need only to create the variables of total writing score in dots 
+and writeTime and add them to the SRL dataset.
+
+Load data files
+```{r}
+load("data_export/DAACS-Results-umgc_2022-09-16.rda")
+#load("D:/OneDrive - University at Albany-SUNY/WorkDirectory/data_export/DAACS-Results-umgc_2022-09-16.rda")
+#load("data_export/umgc1SRLDaacs.rds")
+umgc1SRLDaacs <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/umgc1SRLDaacs.rds")
+```
+
+*Duplicates*
+Test for duplicate values in write.results
+Frequencies: How many of non-duplicated IDs?
+```{r}
+table(duplicated(write.results$DAACS_ID))
+```
+There are 12 duplicated DAACS_ID in write.results (they are the second and third 
+attempts)
+
+*Attempts*
+How many of each number of attempts?
+```{r}
+table(write.results$attempt, useNA = 'ifany') %>% 
+  print() %>% prop.table()* 100
+```
+The umgc1SRLDaacs dataset is a subset of all students from daacs.rds who took 
+SRL assessment It includes all writing scores from the first attempts of all 
+students who took writing assessment. 
+
+*Test Time*
+Calculate test time in minutes per student:
+```{r}
+umgc1SRLDaacs$writeTime= (umgc1SRLDaacs$writeCompletionDate - 
+                            umgc1SRLDaacs$writeStartDate)/60
+```
+
+To remove the non-numeric substring "sec" from the values of writeTime 
+```{r}
+time_var_temp <- 
+lapply(umgc1SRLDaacs[83],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+View(time_var_temp)
+umgc1SRLDaacs$writeTime<-time_var_temp$writeTime
+View(umgc1SRLDaacs)
+```
+
+see the minimum value IN MINUTES
+```{r}
+min(umgc1SRLDaacs$writeTime, na.rm = TRUE)
+```
+
+How many students took 4 minutes or less?
+```{r}
+nrow(umgc1SRLDaacs[umgc1SRLDaacs$writeTime <= 4,])
+```
+???? I don’t know why this number comes here
+12 students took less than 4 minutes to write the essay.
+
+To create a separate dataset of speedy students,
+1)Create a vector of the row numbers of the speedy students:
+```{r}
+speedy<-which (umgc1SRLDaacs$writeTime <= 4)
+```
+
+2)subset the rows of the speedy students as a dataframe:
+```{r}
+umgc1WriteSpeedy<-umgc1SRLDaacs[speedy, ]
+umgc1WriteSpeedy[,c(1,60,83)]
+```
+
+```{r}
+umgc1WriteSpeedy$DAACS_ID
+```
+We have to see the essays of the speedy students and decide whether to retain 
+or remove them.
+
+
+*Total Score*
+Histogram of the writing total scores
+```{r}
+library(ggplot2)
+ggplot(umgc1SRLDaacs, aes(x = writeTotal)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('Write Total') +   
+                    ylab('Number of Students')
+```
+Cut the variable of scores into three categories of dots
+```{r}
+umgc1SRLDaacs$writeTotalDots <- cut(umgc1SRLDaacs$writeTotal,
+                            breaks=c(0, 0.33, 0.66, 1),labels=c('1', '2', '3'))
+```
+
+To build a bar-plot of the reading scores in dots
+
+```{r}
+table(umgc1SRLDaacs$writeTotalDots)
+```
+
+```{r}
+barplot(table(umgc1SRLDaacs$writeTotalDots),
+        main="umgc1 Write Total Score in Dots",
+        xlab="Write Total in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+To check if there are empty rows:
+```{r}
+umgc1SRLDaacs_Check<-
+  umgc1SRLDaacs[rowSums(is.na(umgc1SRLDaacs))!=ncol(umgc1SRLDaacs),]
+```
+Comparing the # of cases, there are no empty rows
+
+*Save New File*
+
+```{r}
+saveRDS(umgc1SRLDaacs, file = 'umgc1SRLDaacs.rds')
+write_sav(umgc1SRLDaacs, "umgc1SRLDaacs.sav")#library(haven)
+write.table(umgc1SRLDaacs, 'umgc1SRLDaacs.csv', sep=',')
+saveRDS(umgc1WriteSpeedy, file = 'umgc1WriteSpeedy.rds')
+write_sav(umgc1WriteSpeedy, "umgc1WriteSpeedy.sav")#library(haven)
+write.table(umgc1WriteSpeedy, 'umgc1WriteSpeedy.csv', sep=',')
+```

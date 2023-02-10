@@ -1,0 +1,467 @@
+---
+title: "DAACS_SRL_DataOrganizing_UMGC1_Sep16_2022_OR"
+author: "Oxana Rosca"
+date: "2022-12-02"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(maditr)
+library(ggplot2)
+```
+
+#setwd("D:OneDrive - University at Albany - SUNY/WorkDirectory")
+
+Load data files
+```{r}
+#load("data_export/DAACS-Results-umgc_2022-09-16.rda")
+load("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/DAACS-Results-umgc_2022-09-16.rda")
+```
+
+*Duplicates*
+Test for duplicate values in srl.items.response
+Frequencies: How many of non-duplicated IDs?
+```{r}
+table(duplicated(daacs$DAACS_ID))
+```
+
+```{r}
+table(duplicated(srl.items.score$DAACS_ID))
+```
+There are 30 duplicated DAACS_ID in srl.items.score (they are the second 
+attempts)
+
+*Attempts*
+How many of each number of attempts?
+```{r}
+table(srl.items.score$attempt, useNA = 'ifany') %>% 
+  print() %>% prop.table()* 100
+```
+Select the first attempts only
+```{r}
+umgc1srl.items.score <- srl.items.score [srl.items.score$attempt == "1",]
+```
+
+*Save the New File*
+Adding a variable of college and saving the new data file:
+```{r}
+umgc1srl.items.score$college <- 'UMGC1'
+saveRDS(umgc1srl.items.score, file = 'umgc1srl.items.score.rds')
+write.table(umgc1srl.items.score, 'umgc1srl.items.score.csv', sep=',')
+```
+
+*Merge*
+Using all.y = TRUE so that we use only students who took the SRL survey. These 
+are all newly enrolled students' data on Sep 16th, 2022 (Removing all students 
+that did not take SRL survey).
+```{r}
+umgc1SRLDaacs<-merge(daacs,umgc1srl.items.score[,c(1,69)],by='DAACS_ID',all.y=TRUE)
+```
+
+*Test Time*
+Calculate test time IN MINUTES per student:
+```{r}
+umgc1SRLDaacs$srlTime= (umgc1SRLDaacs$srlCompletionDate - 
+                            umgc1SRLDaacs$srlStartDate)/60
+```
+
+To remove the non-numeric substring "sec" from the values of srlTime
+```{r}
+time_var_temp <- 
+lapply(umgc1SRLDaacs[63],function(x)as.numeric(sub("\\s+\\D+$","",x)))
+time_var_temp<-as.data.frame(time_var_temp)
+View(time_var_temp)
+umgc1SRLDaacs$srlTime<-time_var_temp$srlTime
+View(umgc1SRLDaacs)
+```
+
+see the minimum value IN MINUTES
+```{r}
+min(umgc1SRLDaacs$srlTime)
+```
+
+How many students took less than 2 minutes?
+```{r}
+nrow(umgc1SRLDaacs[umgc1SRLDaacs$srlTime <= 2,])
+```
+I do not define neither remove speedy students.
+
+
+*Total Score*
+Histogram of the srl scores in points
+```{r}
+#library(ggplot2)
+ggplot(umgc1SRLDaacs, aes(x = srlTotal)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL Total') +   
+                    ylab('Number of Students')
+```
+Cut the variable of scores into three categories of dots
+```{r}
+umgc1SRLDaacs$srlTotalDots <- cut(umgc1SRLDaacs$srlTotal,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+```
+
+To build a bar-plot of the reading scores in dots
+
+```{r}
+table(umgc1SRLDaacs$srlTotalDots)
+```
+
+```{r}
+barplot(table(umgc1SRLDaacs$srlTotalDots),
+        main="UMGC1 SRL Total Score in Dots",
+          xlab="SRL Total in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_strategies)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL strategies') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlStrategieslDots <- cut(umgc1SRLDaacs$srl_strategies,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlStrategieslDots)
+barplot(table(umgc1SRLDaacs$srlStrategieslDots),
+        main="umgc1 SRL strategies in Dots",
+          xlab="SRL strategies in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_motivation)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL motivation') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlmotivationlDots <- cut(umgc1SRLDaacs$srl_motivation,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlmotivationlDots)
+barplot(table(umgc1SRLDaacs$srlmotivationlDots),
+        main="umgc1 SRL motivation in Dots",
+          xlab="SRL motivation in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_metacognition)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL metacognition') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlmetacognitionlDots <- cut(umgc1SRLDaacs$srl_metacognition,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlmetacognitionlDots)
+barplot(table(umgc1SRLDaacs$srlmetacognitionlDots),
+        main="umgc1 SRL metacognition in Dots",
+          xlab="SRL metacognition in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_selfefficacy)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL selfefficacy') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlselfefficacylDots <- cut(umgc1SRLDaacs$srl_selfefficacy,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlselfefficacylDots)
+barplot(table(umgc1SRLDaacs$srlselfefficacylDots),
+        main="umgc1 SRL selfefficacy in Dots",
+          xlab="SRL selfefficacy in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_managing_time)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL managing_time') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlmanaging_timelDots <- cut(umgc1SRLDaacs$srl_managing_time,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlmanaging_timelDots)
+barplot(table(umgc1SRLDaacs$srlmanaging_timelDots),
+        main="umgc1 SRL managing_time in Dots",
+          xlab="SRL managing_time in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_help_seeking)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL help_seeking') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlhelp_seekinglDots <- cut(umgc1SRLDaacs$srl_help_seeking,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlhelp_seekinglDots)
+barplot(table(umgc1SRLDaacs$srlhelp_seekinglDots),
+        main="umgc1 SRL help_seeking in Dots",
+          xlab="SRL help_seeking in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_managing_environment)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL managing_environment') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlmanaging_environmentlDots <- cut(umgc1SRLDaacs$srl_managing_environment,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlmanaging_environmentlDots)
+barplot(table(umgc1SRLDaacs$srlmanaging_environmentlDots),
+        main="umgc1 SRL managing_environment in Dots",
+          xlab="SRL managing_environment in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_understanding)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL understanding') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlunderstandinglDots <- cut(umgc1SRLDaacs$srl_understanding,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlunderstandinglDots)
+barplot(table(umgc1SRLDaacs$srlunderstandinglDots),
+        main="umgc1 SRL understanding in Dots",
+          xlab="SRL understanding in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_anxiety)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL anxiety') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlanxietylDots <- cut(umgc1SRLDaacs$srl_anxiety,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlanxietylDots)
+barplot(table(umgc1SRLDaacs$srlanxietylDots),
+        main="umgc1 SRL anxiety in Dots",
+          xlab="SRL anxiety in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_mastery_orientation)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL mastery_orientation') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlmastery_orientationlDots <- cut(umgc1SRLDaacs$srl_mastery_orientation,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlmastery_orientationlDots)
+barplot(table(umgc1SRLDaacs$srlmastery_orientationlDots),
+        main="umgc1 SRL mastery_orientation in Dots",
+          xlab="SRL mastery_orientation in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_mindset)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL mindset') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlmindsetlDots <- cut(umgc1SRLDaacs$srl_mindset,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlmindsetlDots)
+barplot(table(umgc1SRLDaacs$srlmindsetlDots),
+        main="umgc1 SRL mindset in Dots",
+          xlab="SRL mindset in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_evaluation)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL evaluation') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlevaluationlDots <- cut(umgc1SRLDaacs$srl_evaluation,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlevaluationlDots)
+barplot(table(umgc1SRLDaacs$srlevaluationlDots),
+        main="umgc1 SRL evaluation in Dots",
+          xlab="SRL evaluation in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_monitoring)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL monitoring') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlmonitoringlDots <- cut(umgc1SRLDaacs$srl_monitoring,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlmonitoringlDots)
+barplot(table(umgc1SRLDaacs$srlmonitoringlDots),
+        main="umgc1 SRL monitoring in Dots",
+          xlab="SRL monitoring in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_planning)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL planning') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlplanninglDots <- cut(umgc1SRLDaacs$srl_planning,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlplanninglDots)
+barplot(table(umgc1SRLDaacs$srlplanninglDots),
+        main="umgc1 SRL planning in Dots",
+          xlab="SRL planning in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_self_efficacy_for_mathematics2)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL self_efficacy_for_mathematics') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlself_efficacy_for_mathematics2lDots <- cut(umgc1SRLDaacs$srl_self_efficacy_for_mathematics2,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlself_efficacy_for_mathematics2lDots)
+barplot(table(umgc1SRLDaacs$srlself_efficacy_for_mathematics2lDots),
+        main="umgc1 SRL self_efficacy_for_mathematics in Dots",
+          xlab="SRL self_efficacy_for_mathematics in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_selfefficacy_for_online_learning)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL selfefficacy_for_online_learning') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlselfefficacy_for_online_learninglDots <- cut(umgc1SRLDaacs$srl_selfefficacy_for_online_learning,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlselfefficacy_for_online_learninglDots)
+barplot(table(umgc1SRLDaacs$srlselfefficacy_for_online_learninglDots),
+        main="umgc1 SRL selfefficacy_for_online_learning in Dots",
+          xlab="SRL selfefficacy_for_online_learning in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_selfefficacy_for_reading)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL selfefficacy_for_reading') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlselfefficacy_for_readinglDots <- cut(umgc1SRLDaacs$srl_selfefficacy_for_reading,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlselfefficacy_for_readinglDots)
+barplot(table(umgc1SRLDaacs$srlselfefficacy_for_readinglDots),
+        main="umgc1 SRL selfefficacy_for_reading in Dots",
+          xlab="SRL selfefficacy_for_reading in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+
+```{r}
+ggplot(umgc1SRLDaacs, aes(x = srl_selfefficacy_for_writing)) + 
+  geom_histogram(binwidth = 0.055, show.legend = TRUE, color = "red", 
+                 fill = "#999999", alpha = 1) + xlab('SRL selfefficacy_for_writing') +   
+                    ylab('Number of Students')
+```
+
+```{r}
+umgc1SRLDaacs$srlselfefficacy_for_writinglDots <- cut(umgc1SRLDaacs$srl_selfefficacy_for_writing,
+                              breaks=c(0, 2, 3, 4),labels=c('1', '2', '3'))
+table(umgc1SRLDaacs$srlselfefficacy_for_writinglDots)
+barplot(table(umgc1SRLDaacs$srlselfefficacy_for_writinglDots),
+        main="umgc1 SRL selfefficacy_for_writing in Dots",
+          xlab="SRL selfefficacy_for_writing in Dots", ylab="Number of Students", border="red", 
+              col="grey", density=100)
+```
+
+To check if there are empty rows:
+```{r}
+umgc1SRLDaacs_Check<-
+  umgc1SRLDaacs[rowSums(is.na(umgc1SRLDaacs))!=ncol(umgc1SRLDaacs),]
+```
+Comparing the # of cases in umgc1SRLDaacs and umgc1SRLDaacs_Check (which are 
+equal), there are no empty rows in umgc1SRLDaacs.
+
+*Save New File*
+
+Adding a variable of college and saving the new data file:
+```{r}
+umgc1SRLDaacs$college <- 'UMGC1'
+saveRDS(umgc1SRLDaacs, file = 'umgc1SRLDaacs.rds')
+## to save the output as a comma-separated excel sheet
+write.table(umgc1SRLDaacs, 'umgc1SRLDaacs.csv', sep=',')
+```
+

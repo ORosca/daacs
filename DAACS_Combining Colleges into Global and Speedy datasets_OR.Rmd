@@ -1,0 +1,125 @@
+---
+title: "DAACS_Combining Datasets from Different Colleges_2022_OR"
+author: "Oxana Rosca"
+date: "2022-11-14"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(haven)
+library(dplyr)
+```
+
+#("D:OneDrive - University at Albany - SUNY/WorkDirectory")
+
+Load data files
+```{r}
+umgc1SRLDaacs <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/ua2ReadDaacs.rds")
+ua2ReadDaacs <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/ua2ReadDaacs.rds")
+ua2MathDaacs <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/ua2MathDaacs.rds")
+umgc1ReadDaacs <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/umgc1ReadDaacs.rds")
+umgc1MathDaacs <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/umgc1MathDaacs.rds")
+ua2SRLDaacs <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/ua2SRLDaacs.rds")
+umgc1SRLDaacs <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/umgc1SRLDaacs.rds")
+ua2ReadSpeedy <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/ua2ReadSpeedy.rds")
+ua2MathSpeedy <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/ua2MathSpeedy.rds")
+umgc1ReadSpeedy <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/umgc1ReadSpeedy.rds")
+umgc1MathSpeedy <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/umgc1MathSpeedy.rds")
+umgc1WriteSpeedy <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/umgc1WriteSpeedy.rds")
+```
+
+*Combine*
+Combine the data sets:
+```{r}
+ua2umgc1ReadDaacs<-rbind(umgc1ReadDaacs, ua2ReadDaacs)
+ua2umgc1ReadDaacs<-ua2umgc1ReadDaacs[,-c(25:35)]#to remove math total and domains
+ua2umgc1MathDaacs<-rbind(umgc1MathDaacs, ua2MathDaacs)
+ua2umgc1MathDaacs<-ua2umgc1MathDaacs[,-c(36:45)]#to remove reading total and domains
+ua2umgc1SRLDaacs<-rbind(umgc1SRLDaacs, ua2SRLDaacs)
+ua2umgc1SRLDaacs<-ua2umgc1SRLDaacs[,-c(25:45)]#to remove reading and math totals and domains
+ua2umgc1MathReadDaacs<-merge(ua2umgc1MathDaacs,ua2umgc1ReadDaacs,all = TRUE)
+ua2umgc1MathReadDaacs_Check<-
+ ua2umgc1MathReadDaacs[rowSums(is.na(ua2umgc1MathReadDaacs))!=ncol(ua2umgc1MathReadDaacs),]
+global_ua2umgc1<- merge(ua2umgc1MathReadDaacs,ua2umgc1SRLDaacs,all = TRUE)
+global_ua2umgc1_Check<-
+  global_ua2umgc1[rowSums(is.na(global_ua2umgc1))!=ncol(global_ua2umgc1),]
+table(duplicated(global_ua2umgc1$DAACS_ID))
+```
+Comparing the # of cases in the _Check dataframes, there are no empty rows in 
+new datasets. There are no duplicate DAACS_IDs either.
+
+*College*
+```{r}
+ua2umgc1MathReadDaacs$college<-as.factor(ua2umgc1MathReadDaacs$college)
+ua2umgc1ReadDaacs$college<-as.factor(ua2umgc1ReadDaacs$college)
+ua2umgc1MathDaacs$college<-as.factor(ua2umgc1MathDaacs$college)
+ua2umgc1SRLDaacs$college<-as.factor(ua2umgc1SRLDaacs$college)
+global_ua2umgc1$college<-as.factor(global_ua2umgc1$college)
+```
+
+*Save New Files*
+```{r}
+saveRDS(ua2umgc1MathReadDaacs, file = 'ua2umgc1MathReadDaacs.rds')#library(haven)
+write_sav(ua2umgc1MathReadDaacs, "ua2umgc1MathReadDaacs.sav")
+write.table(ua2umgc1MathReadDaacs, 'ua2umgc1MathReadDaacs.csv', sep=',')
+saveRDS(ua2umgc1ReadDaacs, file = 'ua2umgc1ReadDaacs.rds')
+write_sav(ua2umgc1ReadDaacs, "ua2umgc1ReadDaacs.sav")
+write.table(ua2umgc1ReadDaacs, 'ua2umgc1ReadDaacs.csv', sep=',')
+saveRDS(ua2umgc1MathDaacs, file = 'ua2umgc1MathDaacs.rds')
+write_sav(ua2umgc1MathDaacs, "ua2umgc1MathDaacs.sav")
+write.table(ua2umgc1MathDaacs, 'ua2umgc1MathDaacss.csv', sep=',')
+saveRDS(ua2umgc1SRLDaacs, file = 'ua2umgc1SRLDaacs.rds')
+write.table(ua2umgc1SRLDaacs, 'ua2umgc1SRLDaacs.csv', sep=',')
+saveRDS(global_ua2umgc1, file = 'global_ua2umgc1.rds')
+write_sav(global_ua2umgc1, "global_ua2umgc1.sav")
+write.table(global_ua2umgc1, 'global_ua2umgc1.csv', sep=',')
+```
+
+*Speedy Students*
+prepare the speedy datafiles:
+```{r}
+ua2ReadSpeedy<-ua2ReadSpeedy[,-c(25:35)]#to remove math total and domains
+umgc1ReadSpeedy<-umgc1ReadSpeedy[,-c(25:35)]
+ua2MathSpeedy<-ua2MathSpeedy[,-c(36:45)]#to remove reading total and domains
+umgc1MathSpeedy<-umgc1MathSpeedy[,-c(36:45)]
+```
+
+To combine all speedy students, who took less than 3.5 minutes for the reading 
+assessment and/or less than 3 minutes for the math assessment, into a single 
+data frame:
+1)
+```{r}
+SPEEDYua2MathReadDaacs<-
+ merge(ua2ReadSpeedy,ua2MathSpeedy,by.x =c(1:24,35:50),
+       by.y = c(1:24,36:51),all.y = TRUE, all.x = TRUE)
+SPEEDYumgc1MathReadDaacs<-
+ merge(umgc1ReadSpeedy,umgc1MathSpeedy,
+       by.x =c(1:24,35:50),by.y = c(1:24,36:51),all.y = TRUE, all.x = TRUE)
+```
+
+2) Adding new variables of college and item mQ157:
+```{r}
+SPEEDYua2MathReadDaacs$college <- 'UA2'
+SPEEDYua2MathReadDaacs$mQ157 <- 'NA'
+SPEEDYumgc1MathReadDaacs$college <- 'UMGC1'
+```
+3)
+```{r}
+SPEEDYua2umgc1MathReadDaacs<-
+  rbind(SPEEDYua2MathReadDaacs,SPEEDYumgc1MathReadDaacs)
+```
+
+*Save New Files*
+```{r}
+saveRDS(SPEEDYua2umgc1MathReadDaacs, file = 'SPEEDYua2umgc1MathReadDaacs.rds')
+write_sav(SPEEDYua2umgc1MathReadDaacs, "SPEEDYua2umgc1MathReadDaacs.sav")
+write.table(SPEEDYua2umgc1MathReadDaacs,'SPEEDYua2umgc1MathReadDaacs.csv',sep=',')
+```
+

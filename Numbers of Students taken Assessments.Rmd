@@ -1,0 +1,178 @@
+---
+title: "Numbers of Test-Takers for All Assessments"
+author: "Oxana Rosca"
+date: "2022-12-22"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyr)
+```
+
+
+Load the data file
+```{r}
+global_ua2umgc1 <- 
+  readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/global_ua2umgc1.rds")
+```
+
+How many students took all four assessments?
+```{r}
+allFour<- global_ua2umgc1%>% tidyr::drop_na(21,49,236,39)
+nrow (allFour)
+```
+How many students per college took all four assessments?
+```{r}
+table(allFour$college)
+```
+How many students took SRL assessment?
+```{r}
+SRL<- global_ua2umgc1%>% tidyr::drop_na(21)
+nrow (SRL)
+```
+How many students per college took SRL assessment?
+```{r}
+table(SRL$college)
+```
+How many students took Math assessment?
+```{r}
+Math<- global_ua2umgc1%>% tidyr::drop_na(49)
+nrow (Math)
+```
+How many students per college took Math assessment?
+```{r}
+table(Math$college)
+```
+How many students took Reading assessment?
+```{r}
+Read<- global_ua2umgc1%>% tidyr::drop_na(236)
+nrow (Read)
+```
+How many students per college took Reading assessment?
+```{r}
+table(Read$college)
+```
+How many students took Writing assessment?
+```{r}
+Write<- global_ua2umgc1%>% tidyr::drop_na(39)
+nrow (Write)
+```
+How many students per college took Writing assessment?
+```{r}
+table(Write$college)
+```
+
+How many students took SRL, Math, and Reading assessments?
+```{r}
+noWrite<- global_ua2umgc1%>% tidyr::drop_na(21,49,236)
+nrow (noWrite)
+```
+How many students per college took SRL, Math, and Reading assessments?
+```{r}
+table(noWrite$college)
+```
+
+How many students took SRL, Math, and Writing assessments?
+```{r}
+noRead<- global_ua2umgc1%>% tidyr::drop_na(21,49,39)
+nrow (noRead)
+```
+How many students per college took SRL, Math, and Writing assessments?
+```{r}
+table(noRead$college)
+```
+
+How many students took SRL, Reading, and Writing assessments?
+```{r}
+noMath<- global_ua2umgc1%>% tidyr::drop_na(21,236,39)
+nrow (noMath)
+```
+How many students per college took SRL, Reading, and Writing assessments?
+```{r}
+table(noMath$college)
+```
+
+How many students took Math, Reading, and Writing assessments?
+```{r}
+noSRL<- global_ua2umgc1%>% tidyr::drop_na(49,236,39)
+nrow (noSRL)
+```
+How many students per college took Math, Reading, and Writing assessments?
+```{r}
+table(noSRL$college)
+```
+
+How many students took SRL and Math assessments?
+```{r}
+srlMath<- global_ua2umgc1%>% tidyr::drop_na(21,49)
+nrow (srlMath)
+```
+How many students per college took SRL and Math assessments?
+```{r}
+table(srlMath$college)
+```
+
+How many students took SRL and Reading assessments?
+```{r}
+srlRead<- global_ua2umgc1%>% tidyr::drop_na(21,236)
+nrow (srlRead)
+```
+How many students per college took SRL and Reading assessments?
+```{r}
+table(srlRead$college)
+```
+
+How many students took SRL and Writing assessments?
+```{r}
+srlWrite<- global_ua2umgc1%>% tidyr::drop_na(21,39)
+nrow (srlWrite)
+```
+How many students per college took SRL and Writing assessments?
+```{r}
+table(srlWrite$college)
+```
+
+How many students took Math and Reading assessments?
+```{r}
+mathRead<- global_ua2umgc1%>% tidyr::drop_na(49,236)
+nrow (mathRead)
+```
+How many students per college took Math and Reading assessments?
+```{r}
+table(mathRead$college)
+```
+
+How many students took Math and Writing assessments?
+```{r}
+mathWrite<- global_ua2umgc1%>% tidyr::drop_na(49,39)
+nrow (mathWrite)
+```
+How many students per college took Math and Writing assessments?
+```{r}
+table(mathWrite$college)
+```
+
+How many students took Reading and Writing assessments?
+```{r}
+readWrite<- global_ua2umgc1%>% tidyr::drop_na(236,39)
+nrow (readWrite)
+```
+How many students per college took Reading and Writing assessments?
+```{r}
+table(readWrite$college)
+```
+To find out the numbers of students who took one assessment only:
+
+```{r}
+fourAttempts<- global_ua2umgc1[,c(1,41,2,42 ,230 ,25)]
+fourAttempts[is.na(fourAttempts)] <- 0#replace missing values with zeros
+singleAssessment <- subset(fourAttempts[(rowSums(fourAttempts[,c(3:6)])==1),])
+colSums(singleAssessment[,c(3:6)])
+aggregate(singleAssessment[,c(3:6)], list(singleAssessment$college), FUN=sum)
+```
