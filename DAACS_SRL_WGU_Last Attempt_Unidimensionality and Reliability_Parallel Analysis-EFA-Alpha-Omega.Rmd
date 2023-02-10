@@ -1,0 +1,402 @@
+---
+title: "Unidimensionality and Reliability of DAACS SRL scales; Parallel Analysis, 
+EFA, and Alpha/Omega test. WGU. Last Attempt"
+author: "Oxana Rosca"
+date: "2022-08-06"
+output:
+  word_document: default
+  html_document: default
+---
+Dataset (N=6648): From the WGU dataset, I removed 211 cases of students who took
+more than 1 attempt, so that only the last attempts remained in the dataset.
+
+Result: The total set of all SRL items is expectedly not unidimensional,as well 
+as the Motivation scale. However, the Metacognition scale and all sub-scales are 
+unidimensional (with a 4:1 or greater ratio for the first and the second 
+eigenvalues). Parallel analysis suggested that 6 scales (Metacognition, Anxiety 
+Management, Grit-Consistency, Mindset, Help Seeking, and Managing Environment) 
+loaded on a single factor each. 
+Three scales (Mastery Orientation, On-line Self-efficacy, and Grit Persistency) 
+loaded on a single factor.
+The Metacognition Scale and 11 subscales (exept ofGritP and Minset) are 
+perfectly unidimensional (with an 8:1 or greater ratio).
+However, for all subscales, alpha is always greater than omega, which suggests 
+that the sets meet alpha's assumptions.  
+
+The literature says that alpha underestimates internal consistency when the set 
+does not meet the alpha assumptions, while Omega provides correct estimation for 
+multidimensional sets, with correlation between the error terms, 
+non-tau-equivalent,and not univariate distributions (which are all assumptions 
+of alpha). 
+
+Next step: testing for those assumptions.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r library}
+library(psych) 
+library(psychTools)
+library(haven)
+library(GPArotation)
+```
+
+```{r readin}
+daacsSRL <- read_sav("srl.items.score.LastAttempt.wgu_6648.sav")
+```
+
+```{r subset}
+daacsSRL<-daacsSRL[,c(3:59)]
+```
+
+```{r headtail}
+headTail(daacsSRL)
+```
+
+```{r describe}
+describe(daacsSRL)
+```
+How many variables are in the set
+```{r varNumb}
+dim(daacsSRL)
+```
+
+```{r lowerCor}
+lowerCor(daacsSRL)
+```
+
+Create a set of scoring keys to tell us which items go on which scales.
+The first way of creating keys ( you can use minus sign to reverce-code your items (e.g., TA = c("anxious","jittery","nervous","-calm"):
+```{r keys1}
+SRL.keys <- list(MoMa= c("MoMa1","MoMa2","MoMa3", "MoMa4","MoMa5", "MoMa6", 
+                         "MoMa6"), 
+                 MoMo = c("MoMo1","MoMo2","MoMo3", "MoMo4"), 
+                 MoMs = c("MoMs1", "MoMs2", "MoMs3", "MoMs4", "MoMs5", "MoMs6"), 
+                 SeOL = c("SeOL1", "SeOL2", "SeOL3", "SeOL4"),
+                 McE= c("McE1","McE2","McE3", "McE4"), 
+                 McM= c("McM1","McM2","McM3", "McM4","McM5", "McM6"), 
+                 McP = c("McP1", "McP2", "McP3", "McP4"), 
+                 LsHs = c("LsHs1","LsHs2", "LsHs3"), 
+                 LsU = c("LsU1", "LsU2", "LsU3","LsU4"), 
+                 LsMe = c("LsMe1", "LsMe2", "LsMe3"),
+                 LsTm = c("LsTm1", "LsTm2", "LsTm3"),
+                 GritP = c("GritPersist1", "GritPersist2", "GritPersist3", 
+                           "GritPersist4"), 
+                 GritC = c("GritConsist1", "GritConsist2", "GritConsist3", 
+                           "GritConsist4", "GritConsist5", "GritConsist6")) 
+```
+Another way to create the same scoring keys list (with each scale 
+loading on a single factor of the same name. Not finished. Use Using R to score 
+personality scales_Revelle 2022, p. 10: Creating the second scoring keys list 
+with three scales (Metacognition, Anxiety, and Grit Consistency) loading on a 
+single factor McMoMa:
+```{r keys2}
+SRL.keys1 <- list(MoMa= c(1:6), MoMo = c(7:10), MoMs = c(11:16),SeOL = c(17:20),
+                 McE= c( 21:24),McM= c(25:30), McP = c(31:34), LsHs = c(35:37), 
+                 LsU = c(38:41),LsMe = c(42:44),LsTm = c(45:47), 
+                 GritP = c(48:51), GritC = c(52:57))
+```
+
+Some people like to find coefficient alpha as an estimate of reliability. This 
+is of little use but may be done for a single scale using the alpha function. 
+The following analysis presents alpha and omega coefficients. The results 
+suggest that the SRL scale has a general factor but it is not unidimentional: 
+The degrees of freedom for just the general factor are 1539,and the fit is 14.4; 
+the number of observations was  6648  with Chi Square =  95449.15  with 
+prob <  0; the df corrected root mean square of the residuals is  0.13; 
+the RMSEA index =  0.096  and the 10 % confidence intervals are  0.095 0.096
+
+Step One: Check for Unidimensionality. Strictly speaking, uncorrelated 
+factors do not "seriously" affect the alpha when the factors are not correlated; 
+But for a multidimensional scale with correlated factors, alpha shows the lower 
+bound of reliability. Cronbach himself stated that there is no need for all 
+items to be "factorially similar" but a large proportion of the covariation 
+among the items has to be due to a general factor(1951, in Bandalos, 2018).
+Hence, Bandalos suggests "Strictly speaking, tests for tau-equivalence and 
+parallelism should be based on a unidimensional model" p.393.
+
+```{r parallel}
+fa.parallel(daacsSRL, fm="pa", fa="fa", main="Total SRL Scale Parallel 
+            Analysis", n.iter=1000, SMC=TRUE, show.legend=TRUE)
+```
+
+Prallel Analysis suggests 6 factors. 
+```{r cfa6SRL}
+FA_daacsSRL6f <- fa(daacsSRL, nfactors=6, rotate="oblimin", SMC=TRUE, 
+                  max.iter=1000,fm="ml", alpha=.05)
+print(FA_daacsSRL6f, sort=TRUE)
+```
+
+***Result***
+Model fit for 6 factors is good: RMSR = 0.053 and RMSEA 95%CI = [0.052, 0.053],
+but McP2, LSU1, LSU2, LSTm1, LSTm2, LsMe1,LsMe2, MoMo1 and GritPersist1-4 have 
+low loadings (<0.4) and high commonalities (>1.5). 
+Six pairs of factors out of 15 correlate with each other at 0.31-048: Therefore, 
+the unidimensionality request of alpha coefficient is not met for the total SRL 
+set.
+
+```{r cfa3SRL}
+FA_daacsSRL3f <- fa(daacsSRL, nfactors=5, rotate="oblimin", SMC=TRUE, 
+                  max.iter=1000,fm="ml", alpha=.05)
+print(FA_daacsSRL3f, sort=TRUE)
+```
+
+```{r cfa1SRL}
+EFA1SRL <- fa(daacsSRL, nfactors=1, rotate="oblimin", SMC=TRUE, max.iter=1000,
+fm="pa", alpha=.05)
+print(EFA1SRL, sort=TRUE)
+```
+***Result***
+One general factor model has a poor fit: RMSEA 95 % CI = [0.093 0.095], which 
+confirms that the total SRL scale is not unidimensional. However, it has a 
+strong general factor: 48 out of 57 items have loadings of 0.4 or higher; hense,
+the assumption for Omega coefficient is met. 
+
+McDonald has proposed coefficient omega (hierarchical) (ωh) as an estimate of 
+the general factor saturation of a test. It is based upon the correlation of 
+lower order factors. Zinbarg et al. (2005) and Revelle and Zinbarg (2009) 
+compare  McDonald’s ωh to Cronbach’s α and Revelle’s β. They conclude that ωh 
+is the best estimate. (See also Zinbarg et al. (2006) and Revelle and Zinbarg 
+(2009).
+
+An examination of general factor loadings "constitutes an informal test of the 
+omega coefficient assumption that there is a latent variable common to all of 
+the scale’s indicators that can be conducted even in the context of EFA. If the 
+loadings were salient for only a relatively small subset of the indicators, this 
+would suggest that there is no true general factor underlying the covariance 
+matrix. Just such an informal assumption test would have afforded a great deal 
+of protection against the possibility of misinterpreting the misleading ωh 
+estimates occasionally produced in the simulations reported here.”(Zinbarg et 
+al., 2006, p 137).
+
+The most critical of the three assumptions is unidimensionality. To test it, we 
+use exploratory FA and compare Alpha to measures such as Hierarchical (ωh) and 
+Total (ωt) Omegas. These may be found using one of two functions: 
+1) the omega function for an exploratory analysis or 
+2) omegaSem for a confirmatory analysis using the sem package solution based 
+upon the exploratory solution from omega.
+
+The default omega() does a minimum residual factor analysis, fm=“pa” does a 
+principal axes factor analysis (factor.pa), and fm=“mle”provides a maximum 
+likelihood solution.
+If flip =TRUE (the default), items will be reversed so that they have positive 
+loadings on the general factor. The keys are reported so that scores can be 
+found using the score.items function. Arbitrarily reversing items this way can 
+overestimate the general factor.
+
+ωt is an estimate of the total reliability of a test.
+
+```{r}
+daacsMetacog<-daacsSRL[,c(21:34)]
+head(daacsMetacog)
+fa.parallel(daacsMetacog, fm="pa", fa="fa", main="Metacognition Scale", 
+            n.iter=1000, SMC=TRUE, show.legend=TRUE)
+```
+
+```{r}
+daacsEval<-daacsSRL[,c(21:24)]
+head(daacsEval)
+fa.parallel(daacsEval, fm="pa", fa="fa", main="Evaluation Subscale", 
+            n.iter=1000, SMC=TRUE, show.legend=TRUE)
+```
+
+```{r}
+daacsMonit<-daacsSRL[,c(25:30)]
+head(daacsMonit)
+fa.parallel(daacsMonit, fm="pa", fa="fa", main="Monitoring Subscale", 
+            n.iter=1000, SMC=TRUE, show.legend=TRUE)
+```
+
+```{r}
+daacsPlan<-daacsSRL[,c(31:34)]
+head(daacsPlan)
+fa.parallel(daacsPlan, fm="pa", fa="fa", main="Planning Subscale", 
+            n.iter=1000, SMC=TRUE, show.legend=TRUE)
+```
+
+```{r}
+daacsMotiv<-daacsSRL[,c(1:20, 48:57)]
+head(daacsMotiv)
+fa.parallel(daacsMotiv, fm="pa", fa="fa", main="Motivation Scale", 
+            n.iter=1000, SMC=TRUE, show.legend=TRUE)
+```
+
+```{r}
+daacsAnxietyM<-daacsSRL[,c(1:6)]
+head(daacsAnxietyM)
+fa.parallel(daacsAnxietyM, fm="pa", fa="fa", main="Anxiety Management Subscale", 
+            n.iter=1000, SMC=TRUE, show.legend=TRUE)
+```
+
+```{r}
+daacsMast<-daacsSRL[,c(7:10)]
+head(daacsMast)
+fa.parallel(daacsMast, fm="pa", fa="fa", 
+            main="Mastery Orientation Subscale", 
+            n.iter=1000, SMC=TRUE, show.legend=TRUE)
+```
+```{r}
+daacsSE<-daacsSRL[,c(17:20)]
+head(daacsSE)
+fa.parallel(daacsSE, fm="pa", fa="fa", main="On-line Learning Self-efficacy Subscale", 
+            n.iter=1000, SMC=TRUE, show.legend=TRUE)
+```
+
+```{r}
+daacsGritP<-daacsSRL[,c(48:51)]
+head(daacsGritP)
+fa.parallel(daacsGritP, fm="pa", fa="fa", main="Grit Persistance Subscale", 
+            n.iter=1000, SMC=TRUE, show.legend=TRUE)
+```
+
+```{r}
+daacsGritCons<-daacsSRL[,c(52:57)]
+head(daacsGritCons)
+fa.parallel(daacsGritCons, fm="pa", fa="fa", main="Grit Consistancy Subscale", 
+            n.iter=1000, SMC=TRUE, show.legend=TRUE)
+```
+```{r}
+daacsMindset<-daacsSRL[,c(11:16)]
+head(daacsMindset)
+fa.parallel(daacsMindset, fm="pa", fa="fa", main="Mindset Subscale", n.iter=1000, 
+            SMC=TRUE, show.legend=TRUE)
+```
+
+
+```{r}
+daacsStrategies<-daacsSRL[,c(35:47)]
+head(daacsStrategies)
+fa.parallel(daacsStrategies, fm="pa", fa="fa", main="Learning Strategies Scale", 
+            n.iter=1000, SMC=TRUE, show.legend=TRUE)
+```
+
+```{r}
+daacsHelpSk<-daacsSRL[,c(35:37)]
+head(daacsHelpSk)
+fa.parallel(daacsHelpSk, fm="pa", fa="fa", main="Help Seaking Subscale", 
+            n.iter=1000, SMC=TRUE, show.legend=TRUE)
+```
+
+```{r}
+daacsUndrst<-daacsSRL[,c(38:41)]
+head(daacsUndrst)
+fa.parallel(daacsUndrst, fm="pa", fa="fa", main="Understanding Subscale", 
+            n.iter=1000, SMC=TRUE, show.legend=TRUE)
+```
+
+```{r}
+daacsManEnv<-daacsSRL[,c(42:44)]
+head(daacsManEnv)
+fa.parallel(daacsManEnv, fm="pa", fa="fa", main="Managing Environment Subscale", 
+            n.iter=1000, SMC=TRUE, show.legend=TRUE)
+```
+
+```{r}
+daacsTimeMan<-daacsSRL[,c(45:47)]
+head(daacsTimeMan)
+fa.parallel(daacsTimeMan, fm="pa", fa="fa", main="Time Management Subscale", 
+            n.iter=1000, SMC=TRUE, show.legend=TRUE)
+```
+
+
+```{r omega}
+omega(daacsSRL)
+omega(daacsMetacog)
+omega(daacsPlan)
+omega(daacsEval)
+omega(daacsMonit)
+omega(daacsMotiv)
+omega(daacsAnxietyM)
+omega(daacsMindset)
+omega(daacsMast)
+omega(daacsSE)
+omega(daacsGritP)
+omega(daacsGritCons)
+omega(daacsStrategies)
+omega(daacsHelpSk)
+omega(daacsManEnv)
+omega(daacsUndrst)
+omega(daacsTimeMan)
+```
+
+
+```{r alpha95CI}
+alpha(daacsAnxietyM,check.keys=TRUE)
+alpha(daacsMindset,check.keys=TRUE)
+alpha(daacsMast,check.keys=TRUE)
+```
+
+omegaSem(daacsMast) does not run: Error in str2lang(x) : <text>:2:0: unexpected end of input
+1: ~ 
+   ^
+```{r omegaSem}
+omegaSem(daacsAnxietyM)
+omegaSem(daacsMindset)
+```
+```
+
+Revelle's beta coefficient and other split-half reliability measures could not be calculated for the total SRL assessment and for the Motivation scale.
+```{r splithalf}
+spMetac <- splitHalf(daacsMetacog,raw=TRUE, brute=TRUE)
+spMetac
+hist(spMetac$raw,breaks=101, xlab="Split-half reliability",
+main="Split half reliabilities of Metacognition Scale")
+spPlan <- splitHalf(daacsPlan,raw=TRUE, brute=TRUE)
+spPlan
+hist(spPlan$raw,breaks=101, xlab="Split-half reliability",
+main="Split half reliabilities of Planning Subscale")
+spEval <- splitHalf(daacsEval,raw=TRUE, brute=TRUE)
+spEval
+hist(spEval$raw,breaks=101, xlab="Split-half reliability",
+main="Split half reliabilities of Evaluation Subscale")
+spMonit <- splitHalf(daacsMonit,raw=TRUE, brute=TRUE)
+spMonit
+hist(spMonit$raw,breaks=101, xlab="Split-half reliability",
+main="Split half reliabilities of Monitoring Subscale")
+spAnx <- splitHalf(daacsAnxietyM,raw=TRUE, brute=TRUE)
+spAnx
+hist(spAnx$raw,breaks=101, xlab="Split-half reliability",
+main="Split half reliabilities of Anxiety Subscale")
+spMinds <- splitHalf(daacsMindset,raw=TRUE, brute=TRUE)
+spMinds
+hist(spMinds$raw,breaks=101, xlab="Split-half reliability",
+main="Split half reliabilities of Mindset Subscale")
+spMastery <- splitHalf(daacsMast,raw=TRUE, brute=TRUE)
+spMastery
+hist(spMastery$raw,breaks=101, xlab="Split-half reliability",
+main="Split half reliabilities of Mastery Subscale")
+spSelfE <- splitHalf(daacsSE,raw=TRUE, brute=TRUE)
+spSelfE
+hist(spSelfE$raw,breaks=101, xlab="Split-half reliability",
+main="Split half reliabilities of Self-Efficacy Subscale")
+spGritP <- splitHalf(daacsGritP,raw=TRUE, brute=TRUE)
+spGritP
+hist(spGritP$raw,breaks=101, xlab="Split-half reliability",
+main="Split half reliabilities of Grit Persistency Subscale")
+spGritC <- splitHalf(daacsGritCons,raw=TRUE, brute=TRUE)
+spGritC
+hist(spGritC$raw,breaks=101, xlab="Split-half reliability",
+main="Split half reliabilities of Grit Consistency Subscale")
+spStrat <- splitHalf(daacsStrategies,raw=TRUE, brute=TRUE)
+spStrat
+hist(spStrat$raw,breaks=101, xlab="Split-half reliability",
+main="Split half reliabilities of Learning Strategies Scale")
+spHelpS <- splitHalf(daacsHelpSk,raw=TRUE, brute=TRUE)
+spHelpS
+hist(spHelpS$raw,breaks=101, xlab="Split-half reliability",
+main="Split half reliabilities of Help-Seeking Subscale")
+spManEnv <- splitHalf(daacsManEnv,raw=TRUE, brute=TRUE)
+spManEnv
+hist(spManEnv$raw,breaks=101, xlab="Split-half reliability",
+main="Split half reliabilities of Managing Environment Subscale")
+spUnderst <- splitHalf(daacsUndrst,raw=TRUE, brute=TRUE)
+spUnderst
+hist(spUnderst$raw,breaks=101, xlab="Split-half reliability",
+main="Split half reliabilities of Metacognition")
+spTimeM <- splitHalf(daacsTimeMan,raw=TRUE, brute=TRUE)
+spTimeM
+hist(spTimeM$raw,breaks=101, xlab="Split-half reliability",
+main="Split half reliabilities of Time Management Subscale")
+```
+
