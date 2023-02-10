@@ -1,0 +1,211 @@
+---
+title: "DAACS_UA2_UMGC1_Writing Assessment_Parallel Analysis and EFA"
+author: "Oxana Rosca"
+date: "2023-01-06"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+*Results*
+The Writing scale consists of 10 criteria. 
+The results of parallel analysis suggest 4 factors in the writing scale.However, 
+the rubric for writing assessment suggests a five-factor structure by assigning 
+10 criteria to 5 groups: 
+  Content includes Summary and Suggestions
+  Organization	includes Structure and	Transitions
+  Paragraphs includes	Focus on a Main Idea and	Cohesion
+  Sentences	includes Correct and	Complex
+  Conventions	includes Usage and	Punctuation
+According to the results of EFA, for the both colleges, the best fit produced 
+the 5-factor models, where summary and suggestions load on a single factor, 
+ UMGC1: TLI = 0.97, RMSEA[95% CI]= 0.031[0,0.063]	
+  UA2: TLI = 0.987, RMSEA[95% CI]= 0.023[0,0.056]
+
+```{r}
+library(psych)
+library(psychTools)
+```
+
+Load the data file
+```{r}
+global_ua2umgc1 <- readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/global_ua2umgc1.rds")
+```
+*Assessment of factor structure*
+*Unidimensionality rules of thumb (Dr. Colvin)*:
+20% of var explained or 5:1 ratio for eigen 1 to eigen 2 are based on a PCA, 
+where at least one of the eigenvalues must be >=1). Because FA, not PCA, takes 
+into account measurement error, it's possible that you can have values less 
+than 1, but it's not a good sign that your first one is so small.
+Different people advocate for different ratios, some say 4:1, others 8:1.
+
+*Exploratory Factor Analysis (EFA)*
+Furr, R. M. (2014). Scale construction and psychometrics for social and 
+personality psychology.Thousand Oaks, CA: SAGE.doi:10.4135/9781446287866:
+A scale's dimensionality, or factor structure, refers to the number and nature 
+of the variables reflected in its items. 
+a) Dimensionality should be evaluated and considered in scale construction, use, 
+and evaluation
+b) Coefficient alpha is not an index of unidimensionality, the “eigenvalue 
+greater than one” rule should be avoided, and oblique rotations are preferable 
+to orthogonal rotations.
+Each dimension should be scored separately, with each requiring psychometric 
+evaluation. That is, each score obtained from a scale should reflect a single 
+coherent psychological variable. If a score reflects a blend of non-correlated 
+dimensions, then its psychological meaning is highly ambiguous. Thus, a 
+unidimensional scale produces a single score representing the lone dimension 
+reflected in its items.
+If dimensions are correlated robustly (reflecting some shared deeper 
+psychological variable), then scores from those dimensions might be combined to 
+form a score reflecting their shared psychological variable.
+Test for the number of factors (Exploratory FA) in your data using parallel 
+analysis
+
+*Combined Sample (UA2 and UMGC1)*
+*Parallel Analysis*
+The parallel analyses confirms the unidimensionality of the writing scale with 
+the scores of ten writing criteria as indicators (the first eigenvalue 
+substantially dominates other eigenvalues)
+```{r}
+fa.parallel(global_ua2umgc1[,c(27:36)],fa="fa",fm="ml",n.iter=1000,
+        main="Parallel Analysis Scree plot for Writing Scale, UA2 and UMGC1")
+```
+*Exploratory Factor Analysis*
+
+1-factor
+Write_correct and write_usage do not load sufficiently on a general factor
+```{r}
+FA_write1 <- fa(global_ua2umgc1[,c(27:36)], nfactors=1, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(FA_write1, sort=TRUE)
+```
+
+2-factor
+```{r}
+FA_write2 <- fa(global_ua2umgc1[,c(27:36)], nfactors=2, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(FA_write2, sort=TRUE)
+```
+
+3-factor
+```{r}
+FA_write3 <- fa(global_ua2umgc1[,c(27:36)], nfactors=3, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(FA_write3, sort=TRUE)
+```
+
+4-factor
+```{r}
+FA_write4 <- fa(global_ua2umgc1[,c(27:36)], nfactors=4, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(FA_write4, sort=TRUE)
+```
+5-factor
+```{r}
+FA_write5 <- fa(global_ua2umgc1[,c(27:36)], nfactors=5, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(FA_write5, sort=TRUE)
+```
+
+*UMGC1 Sample*
+*Parallel Analysis*
+
+```{r}
+fa.parallel(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:36)],fm="ml",
+          fa="fa",n.iter=1000,
+          main="Parallel Analysis Scree plot for Writing Scale, UMGC1")
+
+```
+*Exploratory Factor Analysis*
+1-factor
+```{r}
+FA_write1 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:36)], 
+          nfactors=1,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write1, sort=TRUE)
+```
+
+2-factor
+```{r}
+FA_write2 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:36)], 
+          nfactors=2,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write2, sort=TRUE)
+```
+
+3-factor
+```{r}
+FA_write3 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:36)], 
+          nfactors=3,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write3, sort=TRUE)
+```
+
+4-factor
+```{r}
+FA_write4 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:36)], 
+          nfactors=4,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write4, sort=TRUE)
+```
+5-factor
+```{r}
+FA_write5 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(27:36)], 
+          nfactors=5,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write5, sort=TRUE)
+```
+
+*UA2 Sample*
+*Parallel Analysis*
+
+```{r}
+fa.parallel(global_ua2umgc1[global_ua2umgc1$college == "UA2",c(27:36)],fa="fa",
+        fm="ml",n.iter=1000,
+        main="Parallel Analysis Scree plot for Writing Scale, UA2")
+```
+
+*Exploratory Factor Analysis*
+1-factor
+```{r}
+FA_write1 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:36)], 
+          nfactors=1,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write1, sort=TRUE)
+```
+
+2-factor
+```{r}
+FA_write2 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:36)], 
+          nfactors=2,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write2, sort=TRUE)
+```
+
+3-factor
+```{r}
+FA_write3 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:36)], 
+          nfactors=3,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write3, sort=TRUE)
+```
+
+4-factor
+```{r}
+FA_write4 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:36)], 
+          nfactors=4,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write4, sort=TRUE)
+```
+5-factor
+```{r}
+FA_write5 <- fa(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(27:36)], 
+          nfactors=5,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(FA_write5, sort=TRUE)
+```
+
+After clarifying the scale's structure (CFA), examine the reliability and 
+validity of each dimension through a series of studies (Furr, 2014).
+
+
+
+
+
+
+

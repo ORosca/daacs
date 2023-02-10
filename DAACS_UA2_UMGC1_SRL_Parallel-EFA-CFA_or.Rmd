@@ -1,0 +1,1004 @@
+---
+title: "DAACS_UA2_UMGC1_SRL Assessment_Parallel Analysis, EFA, and CFA"
+author: "Oxana Rosca"
+date: "2023-01-31"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Assessment of factor structure
+Furr (2014):
+A scale's dimensionality, or factor structure, refers to the number 
+and nature of the variables reflected in its items. 
+a) Dimensionality should be evaluated and considered in scale construction, use, 
+and evaluation
+b) Coefficient alpha is not an index of unidimensionality, the “eigenvalue 
+greater than one” rule should be avoided, and oblique rotations are preferable 
+to orthogonal rotations.
+Each dimension should be scored separately, with each requiring psychometric 
+evaluation. That is, each score obtained from a scale should reflect a single 
+coherent psychological variable. If a score reflects a blend of non-correlated 
+dimensions, then its psychological meaning is highly ambiguous. Thus, a 
+unidimensional scale produces a single score representing the lone dimension 
+reflected in its items.
+If dimensions are correlated robustly (reflecting some shared deeper 
+psychological variable), then scores from those dimensions might be combined to 
+form a score reflecting their shared psychological variable.
+
+## The SRL assessment consists of 4 scales and 14 subscales.
+
+## Results
+The results of parallel analyses of SRL Assessment with the scores of four 
+scales (motivation, metacognition, learning strategies, and self-efficacy) as 
+indicators suggest 2 factors in the SRL assessment. However, the theoretical 
+model assumes a 4-factor structure. 
+A probable next step: a second-order CFA to test two second-order factors.
+
+
+Parallel Analyses of SRL Assessment with 14 subscales' scores as indicators 
+(Planning, Monitoring, Evaluating, Mastery, Mindset, Anxiety, Environment, 
+The subscales of Planning, Monitoring, Evaluating, Mastery, Mindset, Anxiety, 
+Environment, Time, Understanding, Help-seeking, Self-Efficacy for Math, 
+Self-Efficacy for Reading, Self-Efficacy for Writing, and Self-Efficacy for 
+Online Learning) suggests a four-factor structure of the SRL Assessment, which 
+corresponds to the theoretical model. 
+
+Exploratory Factor Analyses (EFA) of SRL Assessment (14 subscales):The 1-, 2-, 
+3-, and 9-factor models have a poor fit to the data; The 4-, 5-, 6-, 7-, and 
+8-factor models have a good fit to the data. The 4-factor model presents the 
+closest  factor structure to the theoretical model. 
+The scores of monitoring, evaluation, and planning always load on the same 
+factor in 4- and 5-factor EFAs, just as the theoretical model states (the 
+metacognition factor).
+
+Three self-efficacy scores of reading, writing, and online learning also always 
+load on a single factor, in accordance with the theoretical model (the self-
+efficasy factor).
+
+However, the srl_self_efficacy_for_mathematics2 never loads on the the same 
+factor with other three indicators of the self-efficacy. 
+The construct of motivation is the least present in all EFAs; 
+The indicator of srl_mindset tends to lack loading on any factor.
+
+The 4-factor CFA model has a poor fit. The modification indices of the 4-factor 
+CFA1 suggested assigning  anxiety to the metacognition factor (CFA2).
+The modification didn't improve the fit statistics, but the modification 
+indecies of the CFA2 suggested  assigning  anxiety to the self-efficacy factor 
+(CFA3). That modification improved one (SRMR) of the three fit statistics to an 
+acceptable level. 
+Other  modification indices suggested correlations between: managing_environment 
+and managing_time, anxiety and math self-efficacy, reading self-efficacy and 
+writing self-efficacy, and planning and evaluation. None of those modifications 
+improved the fit sufficiently.
+
+## The next steps: 
+1.Run a bifactor model to test the SRL scale for general factor saturation.
+2.Run a second-order CFA including all items of every SRL sub-scale.
+3.After clarifying the scale's structure (CFA), examine the reliability and 
+validity of each dimension through a series of studies (Furr, 2014).
+
+```{r}
+library(psych)
+library(psychTools)
+library(lavaan)
+library(semPlot)
+library(dplyr)
+```
+Test for the unidimensionality and number of factors in your data using parallel
+analysis and Exploratory FA
+Load the data file
+```{r}
+global_ua2umgc1 <- 
+readRDS("D:/OneDrive - University at Albany - SUNY/WorkDirectory/data_export/global_ua2umgc1.rds")
+```
+
+## Results
+Results: The results of parallel analyses of SRL Assessment with the scores of 
+four scales (motivation, metacognition, learning strategies, and self-efficacy) 
+as indicators suggest 2 factors in the SRL assessment. However, the theoretical 
+model assumes a 4-factor structure.
+
+## Four scales of SRL Assessment
+Motivation, metacognition, learning strategies, and self-efficacy scales suggest 
+two-factor structure. 
+
+### Parallel Analyses of SRL Assessment with the 4 scales' scores as indicators. 
+Motivation, metacognition, learning strategies, and self-efficacy. 
+
+#### Combined Sample (UA2 and UMGC1) Parallel Analysis of SRL Assnt (4 scales)
+```{r}
+fa.parallel(global_ua2umgc1[,c(3:6)],fa="fa",fm="ml",n.iter=1000,
+    main="Parallel Analysis Scree plot for SRL Assnt (4 scales), UA2 and UMGC1")
+```
+
+#### UMGC1 Sample Parallel Analysis of SRL Assessment (four scales)
+```{r}
+fa.parallel(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(3:6)],fm="ml",
+          fa="fa",n.iter=1000,
+  main="Parallel Analysis Scree plot for SRL Assessment (four scales), UMGC1")
+```
+
+#### UA2 Sample Parallel Analysis of SRL Assessment (four scales)
+```{r}
+fa.parallel(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(3:6)],fa="fa",
+                fm="ml",n.iter=1000,
+    main="Parallel Analysis Scree plot for SRL Assessment (four scales), UA2")
+```
+
+### Exploratory Factor Analyses (EFA) of SRL Assessment (four scales)
+Run only 1- and 2-factor solutions since due to InSufficient Number of 
+Indicators per Construct: https://davidakenny.net/cm/identify_formal.htm
+
+#### Combined Sample (UA2 and UMGC1) 1-factor EFA of SRL Assessment (4 scales)
+Although the RMSEA has a good value, the TLI and RMSR suggest a bad fit.  
+```{r}
+EFA_SRL1 <- fa(global_ua2umgc1[,c(3:6)], nfactors=1, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA_SRL1,cut = 0.2, sort=TRUE)
+```
+
+#### Combined Sample (UA2 and UMGC1) 2-factor EFA of SRL Assessment (4 scales)
+It is an over-identified model (the df is negative, and the fit is good)   
+```{r}
+EFA_SRL2 <- fa(global_ua2umgc1[,c(3:6)], nfactors=2, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA_SRL2, cut = 0.2, sort=TRUE)
+```
+
+```{r}
+fa.diagram(EFA_SRL2, cut=0.2, 
+           main= "2-factor EFA,SRL, 4 scales, UA2 and UMGC1")
+```
+
+#### UA2 Sample 1-factor EFA of SRL Assessment (4 scales)
+Although the RMSEA has a goodish value, the TLI and RMSR suggest a bad fit.  
+```{r}
+EFA_SRL1ua2 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UA2",c(3:6)], 
+      nfactors=1, rotate="oblimin", SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA_SRL1ua2,cutoff = 0.2, sort=TRUE)
+```
+
+####  UA2 Sample 2-factor EFA of SRL Assessment (4 scales)
+It is an over-identified model (the df is negative, and the fit is good)   
+```{r}
+EFA_SRL2ua2 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UA2",c(3:6)], 
+      nfactors=2, rotate="oblimin", SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA_SRL2ua2, cut = 0.2, sort=TRUE)
+```
+
+```{r}
+fa.diagram(EFA_SRL2ua2, cut=0.2, 
+           main= "2-factor EFA,SRL, 4 scales, UA2")
+```
+
+#### UMGC1 Sample 1-factor EFA of SRL Assessment (4 scales)
+Although the RMSEA has a goodish value, the TLI and RMSR suggest a bad fit.  
+```{r}
+EFA_SRL1umgc1 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UMGC1",c(3:6)], 
+      nfactors=1, rotate="oblimin", SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA_SRL1umgc1,cut = 0.2, sort=TRUE)
+```
+
+####  UMGC1 Sample 2-factor EFA of SRL Assessment (4 scales)
+It is an over-identified model (the df is negative, and the fit is good)   
+```{r}
+EFA_SRL2umgc1 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UMGC1",c(3:6)], 
+nfactors=2,rotate="oblimin",SMC=TRUE,max.iter=1000,fm="ml",alpha=.05)
+print(EFA_SRL2umgc1,cut = 0.2, sort=TRUE)
+```
+
+```{r}
+fa.diagram(EFA_SRL2umgc1, cut=0.2, 
+           main= "2-factor EFA,SRL, 4 scales, UMGC1")
+```
+
+### Parallel Analyses of SRL Assessment with 14 subscales' scores as indicators. 
+Planning, Monitoring, Evaluating, Mastery, Mindset, Anxiety, Environment, 
+The subscales of Planning, Monitoring, Evaluating, Mastery, Mindset, Anxiety, 
+Environment, Time, Understanding, Help-seeking, Self-Efficacy for Math, 
+Self-Efficacy for Reading, Self-Efficacy for Writing, and Self-Efficacy for 
+Online Learning. 
+The model suggests a four-factor structure of the SRL Assessment, which 
+corresponds to the theoretical model. 
+
+#### Combined Sample (UA2 and UMGC1) Parallel Analysis of fourteen SRL subscales
+Parallel analysis suggests 4-factor structure of SRL assessment made of 14 
+subscales.
+```{r}
+fa.parallel(global_ua2umgc1[,c(7:20)],fa="fa",fm="ml",n.iter=1000,
+  main="Parallel Analysis Scree plot for fourteen SRL subscales, UA2 and UMGC1")
+```
+
+#### UMGC1 Sample Parallel Analysis of fourteen SRL subscales
+Parallel analysis suggests 4-factor structure of SRL assessment made of 14 
+subscales.
+```{r}
+fa.parallel(global_ua2umgc1[global_ua2umgc1$college=="UMGC1",c(7:20)],fm="ml",
+          fa="fa",n.iter=1000,
+          main="Parallel Analysis Scree plot for fourteen SRL subscales, UMGC1")
+```
+
+#### UA2 Sample Parallel Analysis of fourteen SRL subscales
+Parallel analysis suggests 4-factor structure of SRL assessment made of 14 
+subscales.
+```{r}
+fa.parallel(global_ua2umgc1[global_ua2umgc1$college=="UA2",c(7:20)],fa="fa",
+                fm="ml",n.iter=1000,
+            main="Parallel Analysis Scree plot for fourteen SRL subscales, UA2")
+```
+
+### Exploratory Factor Analyses (EFA) of SRL Assessment (14 subscales)
+The 1-, 2-, 3-, and 9-factor models have a poor fit to the data. The 4-, 5-, 6-, 
+7-, and 8-factor models have a good fit to the data.
+
+#### Combined Sample (UA2 and UMGC1) 1-factor EFA of SRL Assessment (14 scales)
+The model has a poor fit.  
+```{r}
+EFA1_SRL14 <- fa(global_ua2umgc1[,c(7:20)], nfactors=1, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA1_SRL14,cut = 0.2, sort=TRUE)
+```
+##### UA2 Sample 1-factor EFA of SRL Assessment (14 scales)
+The model has a poor fit.  
+```{r}
+EFA1_SRL14ua2 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UA2",c(7:20)], 
+      nfactors=1, rotate="oblimin", SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA1_SRL14ua2,cut = 0.2, sort=TRUE)
+```
+
+##### UMGC1 Sample 1-factor EFA of SRL Assessment (14 scales)
+The model has a poor fit.  
+```{r}
+EFA1_SRL14umgc1 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UMGC1",
+        c(7:20)],nfactors=1, rotate="oblimin", SMC=TRUE, 
+        max.iter=1000, fm="ml", alpha=.05)
+print(EFA1_SRL14umgc1,cut = 0.2, sort=TRUE)
+```
+
+#### Combined Sample (UA2 and UMGC1) 2-factor EFA of SRL Assessment (14 scales)
+The model has a poor fit.  
+```{r}
+EFA2_SRL14 <- fa(global_ua2umgc1[,c(7:20)], nfactors=2, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA2_SRL14,cut = 0.2, sort=TRUE)
+```
+##### UA2 Sample 2-factor EFA of SRL Assessment (14 scales)
+The model has a poor fit.  
+```{r}
+EFA2_SRL14ua2 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UA2",c(7:20)], 
+      nfactors=2, rotate="oblimin", SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA2_SRL14ua2,cut = 0.2, sort=TRUE)
+```
+
+##### UMGC1 Sample 2-factor EFA of SRL Assessment (14 scales)
+The model has a poor fit.  
+```{r}
+EFA2_SRL14umgc1 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UMGC1",
+        c(7:20)],nfactors=2, rotate="oblimin", SMC=TRUE, 
+        max.iter=1000, fm="ml", alpha=.05)
+print(EFA2_SRL14umgc1,cut = 0.2, sort=TRUE)
+```
+
+#### Combined Sample (UA2 and UMGC1) 3-factor EFA of SRL Assessment (14 scales)
+The model has a moderate fit.  
+```{r}
+EFA3_SRL14 <- fa(global_ua2umgc1[,c(7:20)], nfactors=3, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA3_SRL14,cut = 0.2, sort=TRUE)
+```
+
+##### UA2 Sample 3-factor EFA of SRL Assessment (14 scales)
+The model has a moderate fit.  
+```{r}
+EFA3_SRL14ua2 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UA2",c(7:20)], 
+      nfactors=3, rotate="oblimin", SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA3_SRL14ua2,cut = 0.2, sort=TRUE)
+```
+
+##### UMGC1 Sample 3-factor EFA of SRL Assessment (14 scales)
+The model has a poor fit.  
+```{r}
+EFA3_SRL14umgc1 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UMGC1",
+        c(7:20)],nfactors=3, rotate="oblimin", SMC=TRUE, 
+        max.iter=1000, fm="ml", alpha=.05)
+print(EFA3_SRL14umgc1,cut = 0.2, sort=TRUE)
+```
+
+#### Combined Sample (UA2 and UMGC1) 4-factor EFA of SRL Assessment (14 scales)
+The model has a good fit.  
+```{r}
+EFA4_SRL14 <- fa(global_ua2umgc1[,c(7:20)], nfactors=4, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA4_SRL14,cut = 0.2, sort=TRUE)
+```
+
+##### UA2 Sample 4-factor EFA of SRL Assessment (14 scales)
+The model has a good fit.  
+```{r}
+EFA4_SRL14ua2 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UA2",c(7:20)], 
+      nfactors=4, rotate="oblimin", SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA4_SRL14ua2,cut = 0.2, sort=TRUE)
+```
+
+```{r}
+fa.diagram(EFA4_SRL14ua2, cut=0.2, main= "4-factor EFA,SRL, 14 subscales, UA2")
+```
+
+##### UMGC1 Sample 4-factor EFA of SRL Assessment (14 scales)
+The model has an acceptable fit.  
+```{r}
+EFA4_SRL14umgc1 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UMGC1",
+        c(7:20)],nfactors=4, rotate="oblimin", SMC=TRUE, 
+        max.iter=1000, fm="ml", alpha=.05)
+print(EFA4_SRL14umgc1,cut = 0.2, sort=TRUE)
+```
+
+#### Combined Sample (UA2 and UMGC1) 5-factor EFA of SRL Assessment (14 scales)
+The model has a good fit.  
+```{r}
+EFA5_SRL14 <- fa(global_ua2umgc1[,c(7:20)], nfactors=5, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA5_SRL14,cut = 0.2, sort=TRUE)
+```
+
+```{r}
+fa.diagram(EFA5_SRL14, cut=0.2, 
+           main= "5-factor EFA,SRL, 14 subscales, UA2 and UMGC1")
+```
+
+
+##### UA2 Sample 5-factor EFA of SRL Assessment (14 scales)
+The model has a good fit.  
+```{r}
+EFA5_SRL14ua2 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UA2",c(7:20)], 
+      nfactors=5, rotate="oblimin", SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA5_SRL14ua2,cut = 0.2, sort=TRUE)
+```
+
+##### UMGC1 Sample 5-factor EFA of SRL Assessment (14 scales)
+The model has a good fit.  
+```{r}
+EFA5_SRL14umgc1 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UMGC1",
+        c(7:20)],nfactors=5, rotate="oblimin", SMC=TRUE, 
+        max.iter=1000, fm="ml", alpha=.05)
+print(EFA5_SRL14umgc1,cut = 0.2, sort=TRUE)
+```
+
+#### Combined Sample (UA2 and UMGC1) 6-factor EFA of SRL Assessment (14 scales)
+The model has a good fit.  
+```{r}
+EFA6_SRL14 <- fa(global_ua2umgc1[,c(7:20)], nfactors=6, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA6_SRL14,cut = 0.2, sort=TRUE)
+```
+
+##### UA2 Sample 6-factor EFA of SRL Assessment (14 scales)
+The model has a good fit.  
+```{r}
+EFA6_SRL14ua2 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UA2",c(7:20)], 
+      nfactors=6, rotate="oblimin", SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA6_SRL14ua2,cut = 0.2, sort=TRUE)
+```
+
+##### UMGC1 Sample 6-factor EFA of SRL Assessment (14 scales)
+The model has a good fit.  
+```{r}
+EFA6_SRL14umgc1 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UMGC1",
+        c(7:20)],nfactors=6, rotate="oblimin", SMC=TRUE, 
+        max.iter=1000, fm="ml", alpha=.05)
+print(EFA6_SRL14umgc1,cut = 0.2, sort=TRUE)
+```
+
+#### Combined Sample (UA2 and UMGC1) 7-factor EFA of SRL Assessment (14 scales)
+The model has a good fit.  
+```{r}
+EFA7_SRL14 <- fa(global_ua2umgc1[,c(7:20)], nfactors=7, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA7_SRL14,cut = 0.2, sort=TRUE)
+```
+
+##### UA2 Sample 7-factor EFA of SRL Assessment (14 scales)
+The model has a good fit.  
+```{r}
+EFA7_SRL14ua2 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UA2",c(7:20)], 
+      nfactors=7, rotate="oblimin", SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA7_SRL14ua2,cut = 0.2, sort=TRUE)
+```
+
+##### UMGC1 Sample 7-factor EFA of SRL Assessment (14 scales)
+The model has a good fit.  
+```{r}
+EFA7_SRL14umgc1 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UMGC1",
+        c(7:20)],nfactors=7, rotate="oblimin", SMC=TRUE, 
+        max.iter=1000, fm="ml", alpha=.05)
+print(EFA7_SRL14umgc1,cut = 0.2, sort=TRUE)
+```
+
+#### Combined Sample (UA2 and UMGC1) 8-factor EFA of SRL Assessment (14 scales)
+The model has a good fit.  
+```{r}
+EFA8_SRL14 <- fa(global_ua2umgc1[,c(7:20)], nfactors=8, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA8_SRL14,cut = 0.2, sort=TRUE)
+```
+
+##### UA2 Sample 8-factor EFA of SRL Assessment (14 scales)
+The model has a good fit.  
+```{r}
+EFA8_SRL14ua2 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UA2",c(7:20)], 
+      nfactors=8, rotate="oblimin", SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA8_SRL14ua2,cut = 0.2, sort=TRUE)
+```
+
+##### UMGC1 Sample 8-factor EFA of SRL Assessment (14 scales)
+The model has a good fit.  
+```{r}
+EFA8_SRL14umgc1 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UMGC1",
+        c(7:20)],nfactors=8, rotate="oblimin", SMC=TRUE, 
+        max.iter=1000, fm="ml", alpha=.05)
+print(EFA8_SRL14umgc1,cut = 0.2, sort=TRUE)
+```
+
+#### Combined Sample (UA2 and UMGC1) 9-factor EFA of SRL Assessment (14 scales)
+The model has a bad fit.  
+```{r}
+EFA9_SRL14 <- fa(global_ua2umgc1[,c(7:20)], nfactors=9, rotate="oblimin", 
+                SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA9_SRL14,cut = 0.2, sort=TRUE)
+```
+
+##### UA2 Sample 9-factor EFA of SRL Assessment (14 scales)
+The model has a bad fit.  
+```{r}
+EFA9_SRL14ua2 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UA2",c(7:20)], 
+      nfactors=9, rotate="oblimin", SMC=TRUE, max.iter=1000, fm="ml", alpha=.05)
+print(EFA9_SRL14ua2,cut = 0.2, sort=TRUE)
+```
+
+##### UMGC1 Sample 9-factor EFA of SRL Assessment (14 scales)
+The model has a bad fit. 
+```{r}
+EFA9_SRL14umgc1 <- fa(global_ua2umgc1[global_ua2umgc1$college == "UMGC1",
+        c(7:20)],nfactors=9, rotate="oblimin", SMC=TRUE, 
+        max.iter=1000, fm="ml", alpha=.05)
+print(EFA9_SRL14umgc1,cut = 0.2, sort=TRUE)
+```
+
+## CFA 1
+
+### Specify the 4-factor CFA model 1
+```{r}
+CFA_SRL4f<- 'srl_motivation =~ srl_mastery_orientation +srl_mindset +srl_anxiety
+srl_metacognition =~ srl_planning + srl_monitoring + srl_evaluation
+srl_strategies =~ srl_managing_environment + srl_managing_time +
+                srl_understanding + srl_help_seeking
+srl_selfefficacy =~ srl_self_efficacy_for_mathematics2 +                                                                         srl_selfefficacy_for_online_learning + srl_selfefficacy_for_reading + 
+          srl_selfefficacy_for_writing
+srl_metacognition~~srl_motivation
+srl_metacognition~~srl_strategies
+srl_metacognition~~srl_selfefficacy
+srl_motivation~~srl_strategies
+srl_motivation~~srl_selfefficacy
+srl_strategies~~srl_selfefficacy'
+```
+
+### Run the CFA model, Combined Sample (UA2 and UMGC1)
+The model has a poor fit
+```{r}
+CFA_SRL4f_ua2umgc1_fit<-cfa(CFA_SRL4f,
+                data=global_ua2umgc1[,c(7:20)],std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_ua2umgc1_fit, standardized=TRUE, fit.measures = TRUE)
+```
+```{r}
+semPaths(CFA_SRL4f_ua2umgc1_fit,"std")
+```
+
+
+### Run the CFA model, UA2 Sample
+The model has a poor fit
+```{r}
+CFA_SRL4f_ua2_fit<-cfa(CFA_SRL4f,
+      data=global_ua2umgc1[global_ua2umgc1$college == "UA2",c(7:20)],
+      std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_ua2_fit, standardized=TRUE, fit.measures = TRUE)
+```
+
+```{r}
+semPaths(CFA_SRL4f_ua2_fit,"std")
+```
+
+### Run the CFA model, UMGC1 Sample
+The model has a poor fit
+```{r}
+CFA_SRL4f_umgc1_fit<-cfa(CFA_SRL4f,
+      data=global_ua2umgc1[global_ua2umgc1$college == "UMGC1",c(7:20)],
+      std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_umgc1_fit, standardized=TRUE, fit.measures = TRUE)
+```
+
+```{r}
+semPaths(CFA_SRL4f_umgc1_fit,"std")
+```
+
+#### Request Modification Indecies for combined sample CFA
+```{r}
+modindices(CFA_SRL4f_ua2umgc1_fit, sort = TRUE, maximum.number = 5)
+```
+
+#### Request Modification Indecies for UA2 sample CFA
+```{r}
+modindices(CFA_SRL4f_ua2_fit, sort = TRUE, maximum.number = 5)
+```
+
+#### Request Modification Indecies for UMGC1 sample CFA
+```{r}
+modindices(CFA_SRL4f_umgc1_fit, sort = TRUE, maximum.number = 5)
+```
+## CFA 2
+
+Two sets of modification indecies suggest to correlate move the srl_anxiety to 
+srl_metacognition factor
+
+### Specify a modified 4-factor CFA model 2
+move the srl_anxiety to srl_metacognition factor
+```{r}
+CFA_SRL4f_2<- 'srl_motivation =~ srl_mastery_orientation +srl_mindset 
+srl_metacognition =~ srl_planning + srl_monitoring + srl_evaluation +srl_anxiety
+srl_strategies =~ srl_managing_environment + srl_managing_time +
+                srl_understanding + srl_help_seeking
+srl_selfefficacy =~ srl_self_efficacy_for_mathematics2 +                                                                         srl_selfefficacy_for_online_learning + srl_selfefficacy_for_reading + 
+            srl_selfefficacy_for_writing
+srl_metacognition~~srl_motivation
+srl_metacognition~~srl_strategies
+srl_metacognition~~srl_selfefficacy
+srl_motivation~~srl_strategies
+srl_motivation~~srl_selfefficacy
+srl_strategies~~srl_selfefficacy'
+```
+
+### Run the CFA model, Combined Sample (UA2 and UMGC1)
+The model has a poor fit
+```{r}
+CFA_SRL4f_ua2umgc1_fit2<-cfa(CFA_SRL4f_2,
+                data=global_ua2umgc1[,c(7:20)],std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_ua2umgc1_fit2, standardized=TRUE, fit.measures = TRUE)
+```
+
+```{r}
+semPaths(CFA_SRL4f_ua2umgc1_fit2,"std")
+```
+
+#### Request Modification Indecies for the combined sample CFA
+```{r}
+modindices(CFA_SRL4f_ua2umgc1_fit2, sort = TRUE, maximum.number = 3)
+```
+
+### Run the CFA model, UA2 Sample
+The model has a poor fit
+```{r}
+CFA_SRL4f_ua2_fit2<-cfa(CFA_SRL4f_2,
+      data=global_ua2umgc1[global_ua2umgc1$college == "UA2",c(7:20)],
+      std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_ua2_fit2, standardized=TRUE, fit.measures = TRUE)
+```
+
+```{r}
+semPaths(CFA_SRL4f_ua2_fit2,"std")
+```
+#### Request Modification Indecies for the UA2 sample CFA
+```{r}
+modindices(CFA_SRL4f_ua2_fit2, sort = TRUE, maximum.number = 3)
+```
+
+### Run the CFA model, UMGC1 Sample
+The model has a poor fit
+```{r}
+CFA_SRL4f_umgc1_fit2<-cfa(CFA_SRL4f_2,
+      data=global_ua2umgc1[global_ua2umgc1$college == "UMGC1",c(7:20)],
+      std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_umgc1_fit2, standardized=TRUE, fit.measures = TRUE)
+```
+
+```{r}
+semPaths(CFA_SRL4f_umgc1_fit2,"std")
+```
+
+#### Request Modification Indecies for the UA2 sample CFA
+```{r}
+modindices(CFA_SRL4f_umgc1_fit2, sort = TRUE, maximum.number = 3)
+```
+## CFA 3
+
+All three sets of modification indices suggest to move srl_anxiety to	
+srl_selfefficacy factor
+
+### Specify a modified 4-factor CFA model 3
+```{r}
+CFA_SRL4f_3<- 'srl_motivation =~ srl_mastery_orientation +srl_mindset 
+srl_metacognition =~ srl_planning + srl_monitoring + srl_evaluation
+srl_strategies =~ srl_managing_environment + srl_managing_time +
+                srl_understanding + srl_help_seeking
+srl_selfefficacy =~ srl_self_efficacy_for_mathematics2 + srl_anxiety+                                                             srl_selfefficacy_for_online_learning + srl_selfefficacy_for_reading + 
+            srl_selfefficacy_for_writing
+srl_metacognition~~srl_motivation
+srl_metacognition~~srl_strategies
+srl_metacognition~~srl_selfefficacy
+srl_motivation~~srl_strategies
+srl_motivation~~srl_selfefficacy
+srl_strategies~~srl_selfefficacy'
+```
+
+### Run the CFA model, Combined Sample (UA2 and UMGC1)
+The model has a poor fit
+```{r}
+CFA_SRL4f_ua2umgc1_fit3<-cfa(CFA_SRL4f_3,
+                data=global_ua2umgc1[,c(7:20)],std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_ua2umgc1_fit3, standardized=TRUE, fit.measures = TRUE)
+```
+
+```{r}
+semPaths(CFA_SRL4f_ua2umgc1_fit3,"std")
+```
+
+#### Request Modification Indecies for the combined sample CFA
+```{r}
+modindices(CFA_SRL4f_ua2umgc1_fit3, sort = TRUE, maximum.number = 5)
+```
+
+### Run the CFA model, UA2 Sample
+The model has a poor fit
+```{r}
+CFA_SRL4f_ua2_fit3<-cfa(CFA_SRL4f_3,
+                data=global_ua2umgc1[global_ua2umgc1$college == "UA2",c(7:20)],
+                std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_ua2_fit3, standardized=TRUE, fit.measures = TRUE)
+```
+CFA_SRL4f_ua2umgc1_fit3
+```{r}
+semPaths(CFA_SRL4f_ua2_fit3,"std")
+```
+
+#### Request Modification Indecies for the combined sample CFA
+```{r}
+modindices(CFA_SRL4f_ua2_fit3, sort = TRUE, maximum.number = 5)
+```
+
+### Run the CFA model, UMGC1 Sample
+The model has a poor fit
+```{r}
+CFA_SRL4f_umgc1_fit3<-cfa(CFA_SRL4f_3,
+              data=global_ua2umgc1[global_ua2umgc1$college == "UMGC1",c(7:20)],
+                std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_umgc1_fit3, standardized=TRUE, fit.measures = TRUE)
+```
+
+```{r}
+semPaths(CFA_SRL4f_umgc1_fit3,"std")
+```
+
+#### Request Modification Indecies for the combined sample CFA
+```{r}
+modindices(CFA_SRL4f_umgc1_fit3, sort = TRUE, maximum.number = 5)
+```
+
+## CFA 4
+
+All three sets of modification indices suggest to correlate the indicators of
+srl_managing_environment and srl_managing_time.
+
+### Specify a modified 4-factor CFA model 4
+
+```{r}
+CFA_SRL4f_4<- 'srl_motivation =~ srl_mastery_orientation +srl_mindset 
+srl_metacognition =~ srl_planning + srl_monitoring + srl_evaluation
+srl_strategies =~ srl_managing_environment + srl_managing_time +
+                srl_understanding + srl_help_seeking
+srl_selfefficacy =~ srl_self_efficacy_for_mathematics2 + srl_anxiety+                                                             srl_selfefficacy_for_online_learning + srl_selfefficacy_for_reading + 
+            srl_selfefficacy_for_writing
+srl_metacognition~~srl_motivation
+srl_metacognition~~srl_strategies
+srl_metacognition~~srl_selfefficacy
+srl_motivation~~srl_strategies
+srl_motivation~~srl_selfefficacy
+srl_strategies~~srl_selfefficacy
+srl_managing_environment~~srl_managing_time'
+```
+
+### Run the CFA model, Combined Sample (UA2 and UMGC1)
+The model has a poor fit
+```{r}
+CFA_SRL4f_ua2umgc1_fit4<-cfa(CFA_SRL4f_4,
+                data=global_ua2umgc1[,c(7:20)],std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_ua2umgc1_fit4, standardized=TRUE, fit.measures = TRUE)
+```
+
+```{r}
+semPaths(CFA_SRL4f_ua2umgc1_fit4,"std")
+```
+
+#### Request Modification Indecies for the combined sample CFA
+```{r}
+modindices(CFA_SRL4f_ua2umgc1_fit4, sort = TRUE, maximum.number = 5)
+```
+
+### Run the CFA model, UA2 Sample
+The model has a poor fit
+```{r}
+CFA_SRL4f_ua2_fit4<-cfa(CFA_SRL4f_4,
+                data=global_ua2umgc1[global_ua2umgc1$college == "UA2",c(7:20)],
+                std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_ua2_fit4, standardized=TRUE, fit.measures = TRUE)
+```
+CFA_SRL4f_ua2umgc1_fit4
+```{r}
+semPaths(CFA_SRL4f_ua2_fit4,"std")
+```
+
+#### Request Modification Indecies for the combined sample CFA
+```{r}
+modindices(CFA_SRL4f_ua2_fit4, sort = TRUE, maximum.number = 5)
+```
+
+### Run the CFA model, UMGC1 Sample
+The model has a poor fit
+```{r}
+CFA_SRL4f_umgc1_fit4<-cfa(CFA_SRL4f_4,
+              data=global_ua2umgc1[global_ua2umgc1$college == "UMGC1",c(7:20)],
+                std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_umgc1_fit4, standardized=TRUE, fit.measures = TRUE)
+```
+
+```{r}
+semPaths(CFA_SRL4f_umgc1_fit4,"std")
+```
+
+#### Request Modification Indecies for the combined sample CFA
+```{r}
+modindices(CFA_SRL4f_umgc1_fit4, sort = TRUE, maximum.number = 5)
+```
+## CFA 5
+
+All three sets of modification indices suggest to correlate the indicators of
+srl_anxiety and srl_self_efficacy_for_mathematics2
+
+### Specify a modified 4-factor CFA model 5
+
+```{r}
+CFA_SRL4f_5<- 'srl_motivation =~ srl_mastery_orientation +srl_mindset 
+srl_metacognition =~ srl_planning + srl_monitoring + srl_evaluation
+srl_strategies =~ srl_managing_environment + srl_managing_time +
+                srl_understanding + srl_help_seeking
+srl_selfefficacy =~ srl_self_efficacy_for_mathematics2 + srl_anxiety+                                                             srl_selfefficacy_for_online_learning + srl_selfefficacy_for_reading + 
+            srl_selfefficacy_for_writing
+srl_metacognition~~srl_motivation
+srl_metacognition~~srl_strategies
+srl_metacognition~~srl_selfefficacy
+srl_motivation~~srl_strategies
+srl_motivation~~srl_selfefficacy
+srl_strategies~~srl_selfefficacy
+srl_managing_environment~~srl_managing_time
+srl_self_efficacy_for_mathematics2~~srl_anxiety'
+```
+
+### Run the CFA model, Combined Sample (UA2 and UMGC1)
+The model has a poor fit
+```{r}
+CFA_SRL4f_ua2umgc1_fit5<-cfa(CFA_SRL4f_5,
+                data=global_ua2umgc1[,c(7:20)],std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_ua2umgc1_fit5, standardized=TRUE, fit.measures = TRUE)
+```
+
+```{r}
+semPaths(CFA_SRL4f_ua2umgc1_fit5,"std")
+```
+
+#### Request Modification Indecies for the combined sample CFA
+```{r}
+modindices(CFA_SRL4f_ua2umgc1_fit5, sort = TRUE, maximum.number = 5)
+```
+
+### Run the CFA model, UA2 Sample
+The model has a poor fit
+```{r}
+CFA_SRL4f_ua2_fit5<-cfa(CFA_SRL4f_5,
+                data=global_ua2umgc1[global_ua2umgc1$college == "UA2",c(7:20)],
+                std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_ua2_fit5, standardized=TRUE, fit.measures = TRUE)
+```
+CFA_SRL4f_ua2umgc1_fit5
+```{r}
+semPaths(CFA_SRL4f_ua2_fit5,"std")
+```
+
+#### Request Modification Indecies for the combined sample CFA
+```{r}
+modindices(CFA_SRL4f_ua2_fit5, sort = TRUE, maximum.number = 5)
+```
+
+### Run the CFA model, UMGC1 Sample
+The model has a poor fit
+```{r}
+CFA_SRL4f_umgc1_fit5<-cfa(CFA_SRL4f_5,
+              data=global_ua2umgc1[global_ua2umgc1$college == "UMGC1",c(7:20)],
+                std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_umgc1_fit5, standardized=TRUE, fit.measures = TRUE)
+```
+
+```{r}
+semPaths(CFA_SRL4f_umgc1_fit5,"std")
+```
+
+#### Request Modification Indecies for the combined sample CFA
+```{r}
+modindices(CFA_SRL4f_umgc1_fit5, sort = TRUE, maximum.number = 5)
+```
+
+## CFA 6
+
+All three sets of modification indices suggest to correlate the indicators of
+srl_selfefficacy_for_reading and srl_selfefficacy_for_writing
+
+### Specify a modified 4-factor CFA model 6
+
+```{r}
+CFA_SRL4f_6<- 'srl_motivation =~ srl_mastery_orientation +srl_mindset 
+srl_metacognition =~ srl_planning + srl_monitoring + srl_evaluation
+srl_strategies =~ srl_managing_environment + srl_managing_time +
+                srl_understanding + srl_help_seeking
+srl_selfefficacy =~ srl_self_efficacy_for_mathematics2 + srl_anxiety+                                                             srl_selfefficacy_for_online_learning + srl_selfefficacy_for_reading + 
+            srl_selfefficacy_for_writing
+srl_metacognition~~srl_motivation
+srl_metacognition~~srl_strategies
+srl_metacognition~~srl_selfefficacy
+srl_motivation~~srl_strategies
+srl_motivation~~srl_selfefficacy
+srl_strategies~~srl_selfefficacy
+srl_managing_environment~~srl_managing_time
+srl_self_efficacy_for_mathematics2~~srl_anxiety
+srl_selfefficacy_for_reading~~srl_selfefficacy_for_writing'
+```
+
+### Run the CFA model, Combined Sample (UA2 and UMGC1)
+The model has a poor fit
+```{r}
+CFA_SRL4f_ua2umgc1_fit6<-cfa(CFA_SRL4f_6,
+                data=global_ua2umgc1[,c(7:20)],std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_ua2umgc1_fit6, standardized=TRUE, fit.measures = TRUE)
+```
+
+```{r}
+semPaths(CFA_SRL4f_ua2umgc1_fit6,"std")
+```
+
+#### Request Modification Indecies for the combined sample CFA
+```{r}
+modindices(CFA_SRL4f_ua2umgc1_fit6, sort = TRUE, maximum.number = 5)
+```
+
+### Run the CFA model, UA2 Sample
+The model has a poor fit
+```{r}
+CFA_SRL4f_ua2_fit6<-cfa(CFA_SRL4f_6,
+                data=global_ua2umgc1[global_ua2umgc1$college == "UA2",c(7:20)],
+                std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_ua2_fit6, standardized=TRUE, fit.measures = TRUE)
+```
+CFA_SRL4f_ua2umgc1_fit6
+```{r}
+semPaths(CFA_SRL4f_ua2_fit6,"std")
+```
+
+#### Request Modification Indecies for the combined sample CFA
+```{r}
+modindices(CFA_SRL4f_ua2_fit6, sort = TRUE, maximum.number = 5)
+```
+
+### Run the CFA model, UMGC1 Sample
+The model has a poor fit
+```{r}
+CFA_SRL4f_umgc1_fit6<-cfa(CFA_SRL4f_6,
+              data=global_ua2umgc1[global_ua2umgc1$college == "UMGC1",c(7:20)],
+                std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_umgc1_fit6, standardized=TRUE, fit.measures = TRUE)
+```
+
+```{r}
+semPaths(CFA_SRL4f_umgc1_fit6,"std")
+```
+
+#### Request Modification Indecies for the combined sample CFA
+```{r}
+modindices(CFA_SRL4f_umgc1_fit6, sort = TRUE, maximum.number = 5)
+```
+## CFA 7
+
+All three sets of modification indices suggest to correlate the indicators of
+srl_planning and srl_evaluation
+
+### Specify a modified 4-factor CFA model 7
+
+```{r}
+CFA_SRL4f_7<- 'srl_motivation =~ srl_mastery_orientation +srl_mindset 
+srl_metacognition =~ srl_planning + srl_monitoring + srl_evaluation
+srl_strategies =~ srl_managing_environment + srl_managing_time +
+                srl_understanding + srl_help_seeking
+srl_selfefficacy =~ srl_self_efficacy_for_mathematics2 + srl_anxiety+                                                             srl_selfefficacy_for_online_learning + srl_selfefficacy_for_reading + 
+            srl_selfefficacy_for_writing
+srl_metacognition~~srl_motivation
+srl_metacognition~~srl_strategies
+srl_metacognition~~srl_selfefficacy
+srl_motivation~~srl_strategies
+srl_motivation~~srl_selfefficacy
+srl_strategies~~srl_selfefficacy
+srl_managing_environment~~srl_managing_time
+srl_self_efficacy_for_mathematics2~~srl_anxiety
+srl_selfefficacy_for_reading~~srl_selfefficacy_for_writing
+srl_planning~~srl_evaluation'
+```
+
+### Run the CFA model, Combined Sample (UA2 and UMGC1)
+The model has a poor fit
+```{r}
+CFA_SRL4f_ua2umgc1_fit7<-cfa(CFA_SRL4f_7,
+                data=global_ua2umgc1[,c(7:20)],std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_ua2umgc1_fit7, standardized=TRUE, fit.measures = TRUE)
+```
+
+```{r}
+semPaths(CFA_SRL4f_ua2umgc1_fit7,"std")
+```
+
+#### Request Modification Indecies for the combined sample CFA
+```{r}
+modindices(CFA_SRL4f_ua2umgc1_fit7, sort = TRUE, maximum.number = 5)
+```
+
+### Run the CFA model, UA2 Sample
+The model has a poor fit
+```{r}
+CFA_SRL4f_ua2_fit7<-cfa(CFA_SRL4f_7,
+                data=global_ua2umgc1[global_ua2umgc1$college == "UA2",c(7:20)],
+                std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_ua2_fit7, standardized=TRUE, fit.measures = TRUE)
+```
+CFA_SRL4f_ua2umgc1_fit7
+```{r}
+semPaths(CFA_SRL4f_ua2_fit7,"std")
+```
+
+#### Request Modification Indecies for the combined sample CFA
+```{r}
+modindices(CFA_SRL4f_ua2_fit7, sort = TRUE, maximum.number = 5)
+```
+
+### Run the CFA model, UMGC1 Sample
+The model has a poor fit
+```{r}
+CFA_SRL4f_umgc1_fit7<-cfa(CFA_SRL4f_7,
+              data=global_ua2umgc1[global_ua2umgc1$college == "UMGC1",c(7:20)],
+                std.lv=TRUE, orthogonal=FALSE)
+summary(CFA_SRL4f_umgc1_fit7, standardized=TRUE, fit.measures = TRUE)
+```
+
+```{r}
+semPaths(CFA_SRL4f_umgc1_fit7,"std")
+```
+
+#### Request Modification Indecies for the combined sample CFA
+```{r}
+modindices(CFA_SRL4f_umgc1_fit7, sort = TRUE, maximum.number = 5)
+```
+
+
+#Reference
+Furr, R. M. (2014). Scale construction and psychometrics for social and 
+personality psychology.Thousand Oaks, CA: SAGE.doi:10.4135/9781446287866
+
+
+
+
