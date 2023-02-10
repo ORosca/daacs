@@ -1,2 +1,2 @@
 # daacs
-Descriptive, psychometric, and validity analyses of the DAACS assessments.
+Diagnostic Assessment & Achievement of College Skills
